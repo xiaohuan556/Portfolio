@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Lab | 3D Artist Portfolio</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="cursor">
+        <div class="cursor-ring-outer"></div> <div class="cursor-ring-inner"></div> <div class="cursor-dot"></div>        </div>
+    <div id="loader">
+        <div class="loader-content">
+            <span class="loading-text">SYSTEM INITIALIZING...</span>
+            <div class="progress-bar"><div class="progress"></div></div>
+        </div>
+    </div>
+
+    <canvas id="canvas-webgl"></canvas>
+
+    <div class="hud-top">VER: 2026.03 // DATA_STREAM_ACTIVE</div>
+    <div class="hud-bottom-left">COORDINATES: 35.6895° N, 139.6917° E</div>
+    <div id="transition-curtain">
+        <div class="curtain-panel left"></div>
+        <div class="curtain-panel right"></div>
+        <div class="curtain-loader">LOADING_DATA...</div>
+    </div>
+    <main id="content-anchor">
+        <div class="page-wrapper home-page">
+            <div class="container">
+                <header>
+                    <div class="logo">DESIGN ENTITY.</div>
+                    <div class="status-dot"><span></span>AVAILABLE FOR PROJECTS</div>
+                </header>
+
+                <section class="hero">
+                    <div class="title-wrap">
+                        <h1 class="main-title">个人作品集</h1>
+                        <div class="sub-slogan">
+                            <p class="highlight-text">资深海外投放设计师</p>
+                            <p class="desc-text">
+                                具备卓越的跨媒介整合能力，擅长通过视觉叙事驱动全球市场增长。<br>
+                                坚持系统化思维，致力于通过流程标准化与工具赋能，高效驱动团队协同工作。
+                            </p>
+                        </div>
+                    </div>
+                
+                    <nav class="main-nav">
+                        <a href="javascript:void(0)" onclick="loadPage('works')" class="nav-link">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <span>01</span> 精选案例 <small>SELECTED CASE</small>
+                                </div>
+                                <div class="card-back">
+                                    <span>VIEW</span> PROJECT <span>_DATA</span>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="javascript:void(0)" onclick="loadPage('cinematic')" class="nav-link">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <span>02</span> 动态创意 <small>MOTION STRATEGY</small>
+                                </div>
+                                <div class="card-back">
+                                    <span>PLAY</span> REEL <span>_MOTION</span>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="javascript:void(0)" onclick="loadPage('commercial')" class="nav-link">
+                            <div class="card-inner">
+                                <div class="card-front">
+                                    <span>03</span> 投放实效 <small>GROWTH & ROI</small>
+                                </div>
+                                <div class="card-back">
+                                    <span>READ</span> CASE <span>_GROWTH</span>
+                                </div>
+                            </div>
+                        </a>
+                    </nav>
+                    <div class=\"nav-more-wrapper\">
+                        <a href="javascript:void(0)" onclick="loadPage('about')" class="nav-item-more">
+                            <span class="text">简历详情 / RESUME</span>
+                            <span class="arrow">→</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/three.min.js"></script>
+
+<script src="js/CopyShader.js"></script>
+<script src="js/LuminosityHighPassShader.js"></script>
+
+<script src="js/EffectComposer.js"></script>
+
+<script src="js/RenderPass.js"></script>
+<script src="js/ShaderPass.js"></script>
+<script src="js/UnrealBloomPass.js"></script>
+
+<script src="js/main.js"></script>
+<script src="js/transition.js"></script>
+</body>
+</html>
