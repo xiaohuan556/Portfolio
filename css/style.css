@@ -284,66 +284,90 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
    ========================================================================== */
 /* --- 移动端导航深度优化 --- */
 @media (max-width: 768px) {
-    /* 1. 允许手指穿过文字划到球，但按钮本身可点 */
-    .container { pointer-events: none; }
-    header, .main-nav, .nav-more-wrapper { pointer-events: auto; }
+    /* 1. 保持你要求的画布透视遮罩 */
+    #canvas-webgl {
+        z-index: 1; 
+        /* 核心：Canvas 默认不拦截点击，允许穿透到下面的按钮 */
+        pointer-events: none; 
+        mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+        -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+        opacity: 0.6;
+    }
+    main {
+        position: relative;
+        z-index: 5;
+        min-height: 100vh;
+        /* 允许点击穿透到 Canvas */
+        pointer-events: none; 
+    }
 
-    /* 2. 标题动画：增加一个持续的呼吸效果，不让画面静止 */
+    /* 显式开启交互元素的点击权 */
+    .logo, .main-nav, .nav-item-more, .btn-close, .feed-item {
+        pointer-events: auto !important;
+    }
+
+    .title-wrap {
+        position: relative;
+        top: -180px; /* 这个数字控制“郭欢作品集”那一块的上下 */
+    }
+
+    /* --- 2. 独立控制导航区 (你要的新功能) --- */
+    .main-nav {
+        position: relative; 
+        /* 想往上挪，就用负数 (如 -20px)
+           想往下挪，就用正数 (如 20px) 
+        */
+        top: -100px; 
+        
+        /* 如果觉得导航卡片之间太挤或者太散，只动这一个 gap 值 */
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px; 
+    }
+
+    /* 3. 保持你原本要求的标题样式与动画 */
     .main-title {
         font-size: 3.2rem;
+        letter-spacing: 4px;
+        position: relative;
         animation: titleFloat 4s ease-in-out infinite;
     }
+
     @keyframes titleFloat {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
     }
 
-    /* 3. 导航项：取消悬浮，改为“压感交互” */
+    /* 4. 允许点击与导航项样式（保持不变） */
+    header, .main-nav, .nav-more-wrapper { pointer-events: auto; }
+
     .nav-link {
         width: 100%;
         background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px); /* 增加毛玻璃感，显得高级 */
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(0, 242, 255, 0.2);
         padding: 20px;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex !important;
         flex-direction: column;
-        height: auto;
+        transition: all 0.2s ease;
+        margin-bottom: 12px;
     }
 
-    /* 关键：手机点击瞬间的反馈 */
     .nav-link:active {
-        transform: scale(0.95) translateX(10px); /* 向内凹陷并轻微右移 */
+        transform: scale(0.95) translateX(10px);
         background: rgba(0, 242, 255, 0.15);
         border-color: var(--accent);
     }
-
-    .card-inner { transform: none !important; display: block !important; }
-
-    /* 让文字始终保持高亮，不需要翻转 */
-    .card-front {
-        position: relative;
-        font-size: 1.3rem;
-        opacity: 1;
-        color: #fff;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* 把原来的英文副标题变成一个精致的小标签 */
+    .card-inner { transform: none !important; }
+    .card-front { font-size: 1.3rem; color: #fff; display: flex; justify-content: space-between; align-items: center; }
     .card-back {
-        position: relative;
         display: inline-block !important;
-        transform: none !important;
         font-size: 0.7rem;
         margin-top: 8px;
         color: var(--accent);
-        letter-spacing: 1px;
         background: rgba(0, 242, 255, 0.1);
         padding: 4px 8px;
         border-radius: 2px;
-        width: fit-content;
     }
 }
 
@@ -412,7 +436,6 @@ body.is-transitioning .curtain-loader {
 /* 二级页面通用布局 */
 .page-secondary {
     min-height: 100vh;
-    padding: 60px 40px;
     position: relative;
     z-index: 10;
 }
@@ -422,7 +445,7 @@ body.is-transitioning .curtain-loader {
     position: fixed; /* 改为 fixed，确保不随页面滚动消失 */
     top: 40px;
     left: 40px;
-    z-index: 10001; /* 必须大于窗帘的 9999 */
+    z-index: 9998; /* 必须大于窗帘的 9999 */
     background: rgba(0, 242, 255, 0.1);
     border: 1px solid var(--accent);
     color: var(--accent);
@@ -445,7 +468,7 @@ body.is-transitioning .curtain-loader {
     height: 100vh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory; /* 核心：开启纵向吸附 */
-    background: #000;
+    background: rgba(5, 5, 5, 0.8);
     -webkit-overflow-scrolling: touch;
 }
 
@@ -495,3 +518,25 @@ body.is-transitioning .curtain-loader {
 
 .project-info h3 { color: var(--accent); font-size: 1.2rem; }
 .project-info p { font-size: 0.9rem; opacity: 0.6; margin-top: 5px; }
+/* --- 核心补丁：转场动画增强 --- */
+#canvas-webgl {
+    /* 增加平滑过渡效果 */
+    transition: filter 0.8s ease, transform 0.8s ease, opacity 0.8s ease;
+}
+
+/* 对应 transition.js 中的 canvas.classList.add('bg-blur') */
+.bg-blur {
+    filter: blur(15px) brightness(0.4) !important;
+    transform: scale(1.05); /* 稍微放大防止模糊边缘留白 */
+    opacity: 0.5 !important;
+}
+
+/* 进入二级页面后，隐藏首页文字层，避免干扰作品流 */
+body.is-transitioning .title-wrap,
+body.is-transitioning .main-nav,
+body.loaded.in-subpage .title-wrap,
+body.loaded.in-subpage .main-nav {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.5s ease;
+}
