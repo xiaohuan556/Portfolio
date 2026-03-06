@@ -24,6 +24,7 @@
        camera.position.z = isMobile ? 3.5 : 2.2;
    
        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+       renderer.setClearColor(0x000000, 0);
        renderer.setSize(window.innerWidth, window.innerHeight);
        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
    
@@ -63,7 +64,20 @@ if (isMobile) {
     mesh = new THREE.LineSegments(geometry, material); // 合并为一个渲染单元
     mesh.rotation.x = -0.8;
     scene.add(mesh);
+}else {
+    // 2. 电脑端：找回你最满意的“空间感点云球体”
+    const geometry = new THREE.SphereGeometry(1, 128, 128); // 128的高密度顶点
+    const material = new THREE.PointsMaterial({
+        color: 0x00f2ff,
+        size: 0.005, // 电脑端细小的点更有精致感
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending // 增加叠加发光感
+    });
+    mesh = new THREE.Points(geometry, material);
 }
+
+scene.add(mesh);
    
        // 加载动画逻辑 (保持不变)
        let progress = 0;
@@ -148,8 +162,8 @@ if (isMobile) {
        const navWrap = document.querySelector('.main-nav');
        if (titleWrap && navWrap) {
            if (!isMobile) {
-               titleWrap.style.transform = `translate(${mouseX * -20}px, ${mouseY * -20}px)`;
-               navWrap.style.transform = `translate(${mouseX * 15}px, ${mouseY * 15}px)`;
+            titleWrap.style.transform = `translate(${mouseX * -8}px, ${mouseY * -8}px)`;
+            navWrap.style.transform = `translate(${mouseX * 5}px, ${mouseY * 5}px)`;
            } else {
                // 手机端解锁 transform，由 CSS 控制位置
                titleWrap.style.removeProperty('transform');
@@ -191,8 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         function updateCursor() {
-            pX += (mX - pX) * 0.2; 
-            pY += (mY - pY) * 0.2;
+            pX += (mX - pX) * 0.5; 
+            pY += (mY - pY) * 0.5;
             if(dot) {
                 // 这里的 transform 逻辑完全保留你原始的跟随效果
                 dot.style.transform = `translate(${pX}px, ${pY}px) translate(-50%, -50%)`;
@@ -204,3 +218,58 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCursor();
     }
 });
+
+
+/*随机数字雨*/
+function updateMonitor() {
+    for (let i = 1; i <= 3; i++) {
+        const valEl = document.getElementById(`val-${i}`);
+        const barEl = document.getElementById(`bar-${i}`);
+        
+        if (valEl && barEl) {
+            // 生成 40-95 之间的随机数
+            const randomPercent = Math.floor(Math.random() * 55) + 40;
+            valEl.innerText = randomPercent + '%';
+            barEl.style.width = randomPercent + '%';
+            
+            // 随机触发高亮闪烁
+            const parent = valEl.closest('.data-block');
+            if (Math.random() > 0.8) {
+                parent.style.opacity = "0.8";
+                setTimeout(() => parent.style.opacity = "0.25", 200);
+            }
+        }
+    }
+    setTimeout(updateMonitor, Math.random() * 1000 + 500);
+}
+
+document.addEventListener('DOMContentLoaded', updateMonitor);
+/*/时钟？？*/
+function startLiveClock() {
+    const clockEl = document.getElementById('live-clock');
+    if (!clockEl) return;
+    
+    setInterval(() => {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
+                        now.getMinutes().toString().padStart(2, '0') + ":" + 
+                        now.getSeconds().toString().padStart(2, '0');
+        clockEl.innerText = `UTC_${timeStr}`;
+    }, 1000);
+}
+document.addEventListener('DOMContentLoaded', startLiveClock);
+function initHeaderLogic() {
+    const clockEl = document.getElementById('live-clock');
+    if (clockEl) {
+        setInterval(() => {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + 
+                            now.getMinutes().toString().padStart(2, '0') + ":" + 
+                            now.getSeconds().toString().padStart(2, '0');
+            clockEl.innerText = `UTC_${timeStr}`;
+        }, 1000);
+    }
+}
+
+// 确保在页面加载后启动
+document.addEventListener('DOMContentLoaded', initHeaderLogic);
