@@ -67,7 +67,7 @@ main { position: relative; z-index: 10; }
 
 .container { 
     padding: 40px; 
-    height: 100vh; 
+    min-height: 100vh; 
     display: flex; 
     flex-direction: column; 
     justify-content: space-between; 
@@ -200,7 +200,12 @@ body.is-transitioning .curtain-loader { opacity: 1; animation: curtainBlink 1s i
    8. 二级页面 (Project/Video Details)
    ========================================================================== */
 .page-secondary { color: #fff; background: #050505; min-height: 100vh; }
-.vertical-feed { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
+.vertical-feed {
+    min-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: y mandatory;
+}
 .feed-item { height: 100vh; width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px 20px; }
 .sub-nav-simple { position: fixed; top: 0; left: 0; width: 100%; z-index: 10001; padding: 30px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); pointer-events: none; }
 .btn-back-plain { background: transparent; border: 1px solid var(--accent); color: #fff; font-size: 0.9rem; letter-spacing: 2px; cursor: pointer; pointer-events: auto; opacity: 0.6; transition: 0.3s; }
@@ -234,7 +239,7 @@ body.is-transitioning .curtain-loader { opacity: 1; animation: curtainBlink 1s i
     background: #050505;
     display: flex;
     flex-direction: column;
-    overflow: hidden !important;
+    overflow: hidden;
 }
 
 .resume-scroll-container {
@@ -590,7 +595,7 @@ body.is-transitioning .curtain-loader { opacity: 1; animation: curtainBlink 1s i
 
 @media (max-width: 768px) {
     /* Canvas & 交互层级 */
-    #canvas-webgl { z-index: 1; pointer-events: auto; mask-image: radial-gradient(circle at center, black 20%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%); opacity: 0.6; }
+    #canvas-webgl { z-index: 1;  pointer-events: none; mask-image: radial-gradient(circle at center, black 20%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%); opacity: 0.6; }
     main { position: relative; z-index: 5; min-height: 100vh; pointer-events: none; }
     header, .main-nav, .nav-more-wrapper, .logo, .nav-item-more, .btn-close, .feed-item { pointer-events: auto !important; }
     #cursor, .cursor-dot, .cursor-ring-inner, .cursor-ring-outer { display: none !important; }
@@ -715,4 +720,9 @@ body.is-transitioning .curtain-loader { opacity: 1; animation: curtainBlink 1s i
         border: 1px solid #00f2ff;
         box-shadow: 0 0 50px rgba(0, 0, 0, 1);
     }
+}
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
