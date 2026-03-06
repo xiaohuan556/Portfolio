@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="global-grid-layer"></div>
     <div id="cursor">
         <div class="cursor-ring-outer"></div> <div class="cursor-ring-inner"></div> <div class="cursor-dot"></div>        </div>
     <div id="loader">
@@ -19,8 +20,31 @@
 
     <canvas id="canvas-webgl"></canvas>
 
-    
+    <div class="system-monitor-right">
+        <div class="data-block">
+            <div class="data-info">
+                <span class="label">PROCESSOR_LOAD</span>
+                <span class="value" id="val-1">0%</span>
+            </div>
+            <div class="data-bar"><div class="bar-fill" id="bar-1"></div></div>
+        </div>
+        <div class="data-block">
+            <div class="data-info">
+                <span class="label">MEMORY_BUFFER</span>
+                <span class="value" id="val-2">0%</span>
+            </div>
+            <div class="data-bar"><div class="bar-fill" id="bar-2"></div></div>
+        </div>
+        <div class="data-block">
+            <div class="data-info">
+                <span class="label">NETWORK_SIGNAL</span>
+                <span class="value" id="val-3">0%</span>
+            </div>
+            <div class="data-bar"><div class="bar-fill" id="bar-3"></div></div>
+        </div>
+    </div>
     <div class="hud-bottom-left">COORDINATES: 35.6895° N, 139.6917° E</div>
+ 
     <div id="transition-curtain">
         <div class="curtain-panel left"></div>
         <div class="curtain-panel right"></div>
@@ -30,8 +54,20 @@
         <div class="page-wrapper home-page">
             <div class="container">
                 <header>
-                    <div class="logo">DESIGN HOME.</div>
-                    <div class="status-dot"><span></span>空间站状态稳定</div>
+                    <div class="logo-group">
+                        <div class="logo-icon-scanner"></div> 
+                        <div class="logo-text-content">
+                            <div class="logo">DESIGN HOME.</div>
+                            <div class="sys-meta">
+                                <span class="meta-item">CORE_VER: 2026.4.0</span>
+                                <span class="meta-item" id="live-clock">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="status-group">
+                        <div class="status-dot"><span></span>空间站状态稳定</div>
+                        <div class="hud-line"></div> 
+                    </div>
                 </header>
 
                 <section class="hero">
@@ -99,7 +135,7 @@
 <script src="js/RenderPass.js"></script>
 <script src="js/ShaderPass.js"></script>
 <script src="js/UnrealBloomPass.js"></script>
-
+<script src="js/data.js"></script>
 <script src="js/main.js"></script>
 <script src="js/transition.js"></script>
 </body>
