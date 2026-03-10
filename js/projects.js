@@ -8,8 +8,8 @@ const projectData = {
   ],
   "cinematic": [
     {
-      "videoUrl": "assets/videos/01__cinematic__%E4%BD%9C%E5%93%81%E5%90%8D__2026%E6%98%A5%E5%AD%A3%E8%A7%86%E8%A7%89%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88.mp4",
-      "title": "作品名",
+      "videoUrl": "assets/videos/01__cinematic__%E6%A0%87%E9%A2%98%E8%BF%99%E6%98%AF__2026%E6%98%A5%E5%AD%A3%E8%A7%86%E8%A7%89%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88.mp4",
+      "title": "标题这是",
       "desc": "2026春季视觉升级方案"
     }
   ],
