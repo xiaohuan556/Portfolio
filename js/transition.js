@@ -1,7 +1,9 @@
 function generateFeedHtml(categoryKey) {
     // 1. 核心自动化修改：直接从 projectData 中按 key 取对应的数组
     // 比如传入 'works'，就取 projectData.works
-    const filteredItems = projectData[categoryKey] || []; 
+    const data = (typeof projectData !== 'undefined') ? projectData : { works:[], cinematic:[], commercial:[] };
+    const filteredItems = data[categoryKey] || [];
+
     
     const isMobile = window.innerWidth <= 768;
 

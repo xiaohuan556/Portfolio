@@ -138,6 +138,11 @@
 <script src="js/resume.js"></script> 
 <script src="js/projects.js"></script>
 <script src="js/main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('系统检查：', typeof projectData !== 'undefined' ? '数据已就绪' : '数据缺失！');
+    });
+</script>
 <script src="js/transition.js"></script>
 </body>
 </html>
