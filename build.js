@@ -1,37 +1,32 @@
 const fs = require('fs');
 const path = require('path');
 
-// 设置路径：视频来源和数据去向
-const videoDir = path.join(__dirname, 'assets/videos'); 
-const outputFile = path.join(__dirname, 'js/projects.js'); 
+const videoDir = path.join(__dirname, 'assets/videos');
+const outputFile = path.join(__dirname, 'js/projects.js');
 
-// 初始化分类
-const projectData = { works: [], cinematic: [], commercial: [] };
+// 读取视频并按 01, 02 这种数字编号排序
+const files = fs.readdirSync(videoDir)
+    .filter(f => f.endsWith('.mp4'))
+    .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
 
-try {
-    // 1. 扫描文件夹里的 mp4
-    const files = fs.readdirSync(videoDir).filter(f => f.endsWith('.mp4'));
+const projects = files.map(file => {
+    const parts = file.split('__');
     
-    files.forEach(file => {
-        // 2. 按照“分类_序号_标题_描述.mp4”拆分文件名
-        const [category, id, title, desc] = file.replace('.mp4', '').split('_');
-        
-        if (projectData[category]) {
-            projectData[category].push({
-                id: id || "case",
-                category: category,
-                title: title ? title.replace(/-/g, ' ') : "未命名项目",
-                desc: desc ? desc.replace(/-/g, ' ') : "",
-                videoUrl: `assets/videos/${file}`
-            });
-        }
-    });
+    // 逻辑：编号__分类__标题__描述
+    const category = parts[1] || 'works'; // 如果没写分类，默认归到 works
+    const title = parts[2] || '未命名作品';
+    const desc = (parts[3] || '').replace('.mp4', '');
 
-    // 3. 写入 js/projects.js
-    const content = `// 自动生成文件，请勿手动修改\nconst projectData = ${JSON.stringify(projectData, null, 4)};`;
-    fs.writeFileSync(outputFile, content, 'utf-8');
-    
-    console.log(`✅ 成功！已自动识别并归类 ${files.length} 个作品。`);
-} catch (e) {
-    console.error("❌ 出错了，请确保 assets/videos 文件夹存在。");
-}
+    return {
+        // 【核心】encodeURIComponent 保证中文路径在 GitHub 上不报 404
+        videoUrl: `assets/videos/${encodeURIComponent(file)}`,
+        category: category,
+        title: title,
+        desc: desc
+    };
+});
+
+const content = `const projects = ${JSON.stringify(projects, null, 2)};`;
+fs.writeFileSync(outputFile, content);
+
+console.log(`✅ 同步成功！当前分类包含: ${[...new Set(projects.map(p => p.category))].join(', ')}`);
