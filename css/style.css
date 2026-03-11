@@ -279,15 +279,115 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
    ========================================================================== */
 @media (max-width: 768px) {
     /* --- 1. 你原本的 UI 逻辑 (完全保留) --- */
-    #canvas-webgl { z-index: 1; pointer-events: none; mask-image: radial-gradient(circle at center, black 20%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%); opacity: 0.6; }
-    main { position: relative; z-index: 5; min-height: 100vh; pointer-events: auto !important;}
-    header, .main-nav, .nav-more-wrapper, .logo, .nav-item-more, .btn-close, .feed-item { pointer-events: auto !important; }
+   #canvas-webgl { z-index: 1; pointer-events: none; mask-image: radial-gradient(circle at center, black 20%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%); opacity: 0.6; }
+    main { position: relative; z-index: 5; min-height: 100dvh; pointer-events: auto !important;}
+    .container {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important; /* 强制从顶部开始排 */
+        align-items: flex-start !important;
+        min-height: 100vh !important;
+        height: 100dvh !important;
+    overflow: hidden !important;
+    /* 既然不能滚动了，padding 稍微收紧一点，给中间留出空间 */
+    padding-bottom: env(safe-area-inset-bottom) !important;
+        gap: 0 !important; /* 禁用 gap，我们用 margin 手动精准控制 */
+    }
+
+    /* 2. 头部：归位，不再往顶上飞 */
+    header {
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin-bottom: 40px !important; /* 统一间距：块与块之间 */
+    }
+    .main-nav, .nav-more-wrapper, .logo, .nav-item-more, .btn-close, .feed-item { pointer-events: auto !important; }
     #cursor, .cursor-dot, .cursor-ring-inner, .cursor-ring-outer { display: none !important; }
 
-    .title-wrap { position: relative; top: -180px; }
-    .main-title { font-size: 3.2rem; letter-spacing: 4px; position: relative; animation: titleFloat 4s ease-in-out infinite; text-shadow: 0 0 15px rgba(0, 0, 0, 0.8); z-index: 10; }
-    .main-nav { position: relative; top: -100px; display: flex !important; flex-direction: column !important; gap: 15px; }
-    .nav-link { width: 100%; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(0, 242, 255, 0.2); padding: 20px; display: flex !important; flex-direction: column; margin-bottom: 12px; }
+    /* 修复 3：删除危险的负向 top 值，改用常规间距 */
+    .title-wrap {
+        position: relative !important;
+        top: 0 !important; /* 彻底删掉之前的负位移 */
+        margin: 0 0 40px 0 !important; /* 统一间距：保持 40px 呼吸感 */
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+    
+    /* 5. 字体微调：让标题和正文比例在手机上更“耐看” */
+    .main-title {
+        font-size: 2.6rem !important; /* 稍微收敛，避免文字过长导致视觉拥挤 */
+        line-height: 1.2 !important;
+        margin-bottom: 15px !important;
+        letter-spacing: 2px !important;
+    }
+    .desc-text {
+        font-size: 1rem !important;
+        line-height: 1.7 !important;
+        padding-left: 15px !important;
+        color: rgba(255,255,255,0.8) !important;
+    }
+    .main-nav {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 30px !important; /* 板块间的上下间距 */
+        width: 100% !important;
+        margin-top: 25px !important;
+        perspective: none !important; /* 取消 3D 透视 */
+    }
+
+    .nav-link {
+        width: 85% !important; 
+        height: 60px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(0, 242, 255, 0.2) !important;
+        padding: 0 20px !important;
+        margin-bottom: 0 !important; /* 间距由父级 gap 控制 */
+        overflow: hidden !important;
+    }
+/* 3. 彻底禁用翻转逻辑：强制只显示正面 */
+    .nav-link:hover .card-inner,
+    .nav-link .card-inner {
+        transform: none !important;
+        transition: none !important;
+        display: flex !important;
+        align-items: center !important;
+        height: 100% !important;
+    }
+    .card-front {
+        position: relative !important;
+        inset: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        /* 精致比例字号 */
+        font-size: 1.3rem !important; 
+        font-weight: 700 !important;
+        letter-spacing: 2px !important;
+        color: #fff !important;
+        transform: none !important;
+    }
+    /* 缩小左侧数字 */
+    .card-front span {
+        font-size: 0.8rem !important;
+        margin-right: 15px !important;
+        color: var(--accent) !important;
+        opacity: 0.6;
+    }
+
+    /* 缩小右侧英文小字 */
+    .card-front small {
+        font-size: 0.65rem !important;
+        letter-spacing: 1px !important;
+        margin-left: 10px !important;
+        opacity: 0.4;
+    }
+    .card-back {
+        display: none !important; /* 直接从物理上抹除背面，防止干扰点击 */
+    }
     
     .sub-nav-simple { 
         position: absolute; 
@@ -339,27 +439,37 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     .logo-icon-scanner, 
     .sys-meta, 
     .logo-group::before, 
-    .global-grid-layer,
     .nav-more-wrapper, 
     .nav-item-more,
     .system-selection-trigger { display: none !important; visibility: hidden !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
     /* 视频比例适配：针对竖屏视频优化 */
+
+    
     .system-slide .video-container {
-        width: 100%;
-        max-height: 55dvh !important; /* 视频最多占屏幕高度的 60% */
+        /* 1. 关键修改：取消 100%，让容器自适应内部视频的宽度 */
+        width: auto !important; 
+        max-width: 100%; /* 防止横屏视频溢出 */
+        
+        /* 2. 保持原有逻辑，但确保它水平居中 */
+        align-self: center; 
+        max-height: 55dvh !important;
         display: flex;
         align-items: center;
         justify-content: center;
+        
+        /* 3. 这里的背景和边框现在会精准包裹视频 */
         background: #000;
         overflow: hidden;
-        border: 1px solid rgba(0, 242, 255, 0.2);
+        border: 1px solid rgba(0, 242, 255, 0.4); /* 适当加深一点蓝色，显得更锐利 */
         margin-bottom: 10px;
     }
     
     .system-slide video {
+        /* 确保视频高度撑满容器，让容器宽度跟着视频走 */
+        height: 55dvh !important; 
+        width: auto !important;
         max-width: 100%;
-        max-height: 100%;
-        object-fit: contain; /* 保证视频内容不被裁剪 */
+        object-fit: contain;
     }
 
     /* 文字信息：限制高度，防止挤压按钮 */
@@ -439,4 +549,59 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
 /* 当开启了 controls 属性时（即全屏状态下）才允许显示 */
 .system-slide video[controls]::-webkit-media-controls {
     display: flex !important;
+}
+.page-secondary {
+    background: transparent !important;
+}
+
+/* 确保网格层在二级页面也是可见的 */
+.global-grid-layer {
+    display: block !important;
+    opacity: 0.15; /* 降低一点亮度，不要抢了视频的风头 */
+    z-index: 1; /* 放在内容后面 */
+}
+.back-btn-cyber {
+    position: fixed;
+    top: calc(15px + env(safe-area-inset-top)); /* 适配刘海屏 */
+    left: 20px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 6px 12px;
+    gap: 10px;
+    /* 增加一个细微的发光感 */
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+}
+
+.back-btn-icon {
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    border-right: 1px solid rgba(0, 242, 255, 0.2);
+    padding-right: 8px;
+}
+
+.back-btn-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.back-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.back-id {
+    font-size: 8px;
+    color: var(--accent);
+    opacity: 0.6;
+    font-family: monospace;
+    margin-top: 2px;
 }

@@ -60,19 +60,28 @@ function generateFeedHtml(categoryKey) {
         </div>
     ` : '';
 
-    return `
-        <div class="page-secondary ${isMobile ? 'virtual-scroll-system' : ''}">
-            <div class="sub-nav-simple">
-                <button class="btn-back-cyber" onclick="backToHome()">返回主站</button>
+   return `
+    <div class="page-secondary ${isMobile ? 'virtual-scroll-system' : ''}">
+        
+        <div class="back-btn-cyber" onclick="backToHome()">
+            <div class="back-btn-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                </svg>
             </div>
-            <div class="${isMobile ? 'slides-viewport' : 'resume-scroll-container'}">
-                <div class="${isMobile ? '' : 'resume-content'}">
-                    ${contentHtml}
-                </div>
+            <div class="back-btn-text">
+                <span class="back-label">RETURN</span>
+                <span class="back-id">SYS_ROOT</span>
             </div>
-            ${mobileControls}
         </div>
-    `;
+
+        <div class="${isMobile ? 'slides-viewport' : 'resume-scroll-container'}">
+            <div class="${isMobile ? '' : 'resume-content'}">
+                ${contentHtml}
+            </div>
+        </div>
+        ${mobileControls}
+    </div>`;
 }
 
 const pageTemplates = {
