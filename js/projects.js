@@ -1,29 +1,28 @@
 const projectData = {
   "works": [
     {
-      "videoUrl": "assets/videos/01__works__%E5%88%98%E7%8E%89%E6%96%B0%E5%A9%9A%E5%BF%AB%E4%B9%90__2026%E6%96%B0%E5%A9%9A%E5%A4%A7%E5%90%89.mp4",
-      "title": "刘玉新婚快乐",
-      "desc": "2026新婚大吉"
+      "videoUrl": "assets/videos/01__works____%E9%83%AD%E6%AC%A2%E7%9A%84%E7%AE%80%E5%8E%86%E4%BD%9C%E5%93%81__%E8%BF%99%E6%98%AF%E6%A0%87%E9%A2%98.mp4",
+      "title": "未命名作品",
+      "desc": "郭欢的简历作品"
     }
   ],
   "cinematic": [
     {
-      "videoUrl": "assets/videos/01__cinematic__%E5%88%98%E7%8E%89%E6%96%B0%E5%A9%9A%E5%BF%AB%E4%B9%90__2026%E6%96%B0%E5%A9%9A%E5%A4%A7%E5%90%89.mp4",
-      "title": "刘玉新婚快乐",
-      "desc": "2026新婚大吉"
+      "videoUrl": "assets/videos/01__cinematic__%E9%83%AD%E6%AC%A2%E7%9A%84%E7%AE%80%E5%8E%86%E4%BD%9C%E5%93%81__%E8%BF%99%E6%98%AF%E6%A0%87%E9%A2%98.mp4",
+      "title": "郭欢的简历作品",
+      "desc": "这是标题"
     }
   ],
-  "commercial": [],
-  "commercial_刘玉新婚快乐": [
+  "commercial": [
     {
-      "videoUrl": "assets/videos/01__commercial_%E5%88%98%E7%8E%89%E6%96%B0%E5%A9%9A%E5%BF%AB%E4%B9%90__2026%E6%96%B0%E5%A9%9A%E5%A4%A7%E5%90%89%20(2).mp4",
-      "title": "2026新婚大吉 (2).mp4",
-      "desc": ""
+      "videoUrl": "assets/videos/01__commercial__%E9%83%AD%E6%AC%A2%E7%9A%84%E7%AE%80%E5%8E%86%E4%BD%9C%E5%93%81__%E8%BF%99%E6%98%AF%E6%A0%87%E9%A2%983.mp4",
+      "title": "郭欢的简历作品",
+      "desc": "这是标题3"
     },
     {
-      "videoUrl": "assets/videos/01__commercial_%E5%88%98%E7%8E%89%E6%96%B0%E5%A9%9A%E5%BF%AB%E4%B9%90__2026%E6%96%B0%E5%A9%9A%E5%A4%A7%E5%90%89.mp4",
-      "title": "2026新婚大吉.mp4",
-      "desc": ""
+      "videoUrl": "assets/videos/01__commercial__%E9%83%AD%E6%AC%A2%E7%9A%84%E7%AE%80%E5%8E%86%E4%BD%9C%E5%93%81__%E8%BF%99%E6%98%AF%E6%A0%87%E9%A2%98%E5%90%A7.mp4",
+      "title": "郭欢的简历作品",
+      "desc": "这是标题吧"
     }
   ]
 };
