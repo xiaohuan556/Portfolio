@@ -278,6 +278,59 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
    8. 移动端终极适配合并版 (只整合，不修改你原本的UI数值)
    ========================================================================== */
 @media (max-width: 768px) {
+
+    /* 确保网格层在二级页面也是可见的 */
+.global-grid-layer {
+    display: block !important;
+    opacity: 0.15; /* 降低一点亮度，不要抢了视频的风头 */
+    z-index: 1; /* 放在内容后面 */
+}
+.back-btn-cyber {
+    position: fixed;
+    top: calc(15px + env(safe-area-inset-top)); /* 适配刘海屏 */
+    left: 20px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 6px 12px;
+    gap: 10px;
+    /* 增加一个细微的发光感 */
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+}
+
+.back-btn-icon {
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    border-right: 1px solid rgba(0, 242, 255, 0.2);
+    padding-right: 8px;
+}
+
+.back-btn-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.back-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+.back-id {
+    font-size: 8px;
+    color: var(--accent);
+    opacity: 0.6;
+    font-family: monospace;
+    margin-top: 2px;
+}
+
     /* --- 1. 你原本的 UI 逻辑 (完全保留) --- */
    #canvas-webgl { z-index: 1; pointer-events: none; mask-image: radial-gradient(circle at center, black 20%, transparent 80%); -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%); opacity: 0.6; }
     main { position: relative; z-index: 5; min-height: 100dvh; pointer-events: auto !important;}
@@ -554,54 +607,3 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     background: transparent !important;
 }
 
-/* 确保网格层在二级页面也是可见的 */
-.global-grid-layer {
-    display: block !important;
-    opacity: 0.15; /* 降低一点亮度，不要抢了视频的风头 */
-    z-index: 1; /* 放在内容后面 */
-}
-.back-btn-cyber {
-    position: fixed;
-    top: calc(15px + env(safe-area-inset-top)); /* 适配刘海屏 */
-    left: 20px;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    padding: 6px 12px;
-    gap: 10px;
-    /* 增加一个细微的发光感 */
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
-}
-
-.back-btn-icon {
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    border-right: 1px solid rgba(0, 242, 255, 0.2);
-    padding-right: 8px;
-}
-
-.back-btn-text {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.back-label {
-    font-size: 10px;
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 1px;
-    line-height: 1;
-}
-
-.back-id {
-    font-size: 8px;
-    color: var(--accent);
-    opacity: 0.6;
-    font-family: monospace;
-    margin-top: 2px;
-}
