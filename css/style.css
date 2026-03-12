@@ -257,6 +257,7 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     .pdf-btn { display: inline-block; width: auto; padding: 20px 80px; }
     .resume-footer{ display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 60px; }
     .resume-footer .pdf-btn{ display: inline-block; margin-bottom: 12px; }
+    
 }
 
 /* ==========================================================================
@@ -607,3 +608,89 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     background: transparent !important;
 }
 
+/* ==========================================================================
+   PC端 二级页面“电影感”深度定制 (彻底解决背景乱、有球、挡视频问题)
+   ========================================================================== */
+@media (min-width: 769px) {
+    /* 1. 物理隐藏球体：只要进入二级页面，直接让 Canvas 消失 */
+    body.is-secondary #canvas-webgl {
+        display: none !important;
+    }
+
+    /* 2. 重塑二级页面背景：深邃黑色 + 极简暗光 */
+    .page-secondary, 
+    .resume-root, 
+    .virtual-scroll-system {
+        background: #000000 !important; /* 纯黑底色 */
+        position: fixed !important;
+        inset: 0;
+        z-index: 100 !important;
+        overflow-y: auto !important;
+    }
+
+    /* 3. 背景装饰：用极其暗淡的“呼吸光带”代替杂乱网格 */
+    /* 这种效果不会产生细碎线条，不会干扰视频观看 */
+    .page-secondary::before,
+    .resume-root::before,
+    .virtual-scroll-system::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.03) 0%, transparent 70%);
+        z-index: -1;
+        pointer-events: none;
+        animation: bg-breathing 8s infinite ease-in-out;
+    }
+
+    @keyframes bg-breathing {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    /* 4. 返回按钮：赛博精修版 */
+    /* 确保类名对应 HTML 中的 .back-btn-cyber */
+    .back-btn-cyber {
+        display: flex !important;
+        position: fixed !important;
+        top: 40px !important;
+        left: 40px !important;
+        z-index: 2000 !important;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 242, 255, 0.2) !important;
+        padding: 10px 22px !important;
+        gap: 15px !important;
+        cursor: pointer !important;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .back-btn-cyber:hover {
+        background: rgba(0, 242, 255, 0.1) !important;
+        border-color: #00f2ff !important;
+        box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+        transform: translateX(-5px);
+    }
+
+    /* 按钮内部零件 */
+    .back-btn-icon { 
+        color: #00f2ff !important; 
+        border-right: 1px solid rgba(0, 242, 255, 0.2) !important; 
+        padding-right: 12px !important; 
+        font-size: 18px;
+    }
+    .back-label { 
+        font-size: 12px !important; 
+        font-weight: 900 !important; 
+        color: #fff !important; 
+        letter-spacing: 2px !important; 
+        text-transform: uppercase;
+    }
+    .back-id { 
+        font-size: 9px !important; 
+        color: #00f2ff !important; 
+        opacity: 0.5 !important; 
+        font-family: 'Space Mono', monospace !important;
+    }
+} /* 这里是 @media 的闭合大括号，极其重要 */
