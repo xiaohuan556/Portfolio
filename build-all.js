@@ -2,53 +2,104 @@ const fs = require('fs');
 const path = require('path');
 
 const videoDir = path.join(__dirname, 'assets/videos');
+const metaFile = path.join(videoDir, 'meta.json');
 const outputFile = path.join(__dirname, 'js/projects.js');
 
-// 1. 读取所有视频并进行自然排序（01, 02...）
-const files = fs.readdirSync(videoDir)
-    .filter(f => f.endsWith('.mp4'))
+// 读取现有 meta（如果存在）
+let meta = {};
+if (fs.existsSync(metaFile)) {
+    try {
+        meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
+        console.log('📖 已读取现有 meta.json');
+    } catch(e) {
+        console.log('⚠️ meta.json 解析失败，将创建新文件');
+    }
+}
+
+// 获取所有视频文件
+const files = fs.readdirSync(videoDir).filter(f => f.endsWith('.mp4'));
+
+let metaChanged = false;
+let renamedCount = 0;
+
+console.log('📁 扫描到', files.length, '个视频文件\n');
+
+files.forEach(oldName => {
+    // 判断是否已经是短格式（如 01__works.mp4）
+    const isShort = /^\d+__[a-z]+\.mp4$/.test(oldName);
+    if (isShort) {
+        console.log(`⏩ 跳过（已是短格式）: ${oldName}`);
+        return;
+    }
+
+    // 长文件名：编号__分类__标题__描述.mp4
+    const nameWithoutExt = oldName.replace('.mp4', '');
+    const parts = nameWithoutExt.split('__');
+    
+    if (parts.length < 4) {
+        console.log(`⚠️ 格式不正确，跳过: ${oldName}`);
+        return;
+    }
+
+    const id = `${parts[0]}__${parts[1]}`;      // 例如 "01__works"
+    const category = parts[1].toLowerCase();
+    const title = parts[2];
+    const desc = parts.slice(3).join('__');     // 描述可能包含 __
+
+    // 更新 meta
+    if (!meta[id]) {
+        meta[id] = { title, desc };
+        metaChanged = true;
+        console.log(`📝 添加 meta: ${id}`);
+    }
+
+    // 重命名文件
+    const newName = `${id}.mp4`;
+    const oldPath = path.join(videoDir, oldName);
+    const newPath = path.join(videoDir, newName);
+    
+    if (oldPath !== newPath) {
+        fs.renameSync(oldPath, newPath);
+        console.log(`✅ 重命名: ${oldName.substring(0, 50)}... → ${newName}`);
+        renamedCount++;
+    }
+});
+
+// 如果有新视频，保存 meta.json
+if (metaChanged) {
+    fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2));
+    console.log(`\n📝 meta.json 已保存（共 ${Object.keys(meta).length} 条记录）`);
+}
+
+console.log(`\n📊 重命名了 ${renamedCount} 个文件\n`);
+
+// 读取所有短格式文件，生成 projects.js
+const shortFiles = fs.readdirSync(videoDir)
+    .filter(f => f.endsWith('.mp4') && /^\d+__[a-z]+\.mp4$/.test(f))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-// 2. 初始化分类对象（必须匹配你 HTML 里的 works, cinematic, commercial）
 const projectData = {
     works: [],
     cinematic: [],
     commercial: []
 };
 
-// 3. 解析文件名并填入对应分类
-files.forEach(file => {
-    const parts = file.split('__');
-    
-    // 结构：编号__分类__标题__描述
-    // 强制转小写防止意外，如果没分类默认丢进 works
-    const category = (parts[1] || 'works').toLowerCase(); 
-    const title = parts[2] || '未命名作品';
-    const desc = (parts[3] || '').replace('.mp4', '');
+shortFiles.forEach(file => {
+    const id = file.replace('.mp4', '');
+    const parts = id.split('__');
+    const category = parts[1].toLowerCase();
+    const metaItem = meta[id] || { title: '未命名', desc: '' };
 
-    const item = {
-        // 使用 encodeURIComponent 彻底解决 GitHub 中文 404 问题
+    projectData[category].push({
         videoUrl: `assets/videos/${encodeURIComponent(file)}`,
-        title: title,
-        desc: desc
-    };
-
-    // 如果文件名里的分类在我们的字典里，就塞进去
-    if (projectData.hasOwnProperty(category)) {
-        projectData[category].push(item);
-    } else {
-        // 如果你写了新的分类（如 motion），这里会自动创建一个
-        projectData[category] = [item];
-    }
+        title: metaItem.title,
+        desc: metaItem.desc
+    });
 });
 
-// 4. 导出为网页 transition.js 正在寻找的变量名：projectData
+// 生成 projects.js
 const content = `const projectData = ${JSON.stringify(projectData, null, 2)};`;
+fs.writeFileSync(outputFile, content);
 
-try {
-    fs.writeFileSync(outputFile, content);
-    console.log('🚀 [Build Success]');
-    console.log('已自动归类：', Object.keys(projectData).map(k => `${k}(${projectData[k].length})`).join(' | '));
-} catch (err) {
-    console.error('❌ 写入失败:', err);
-}
+console.log('✅ projects.js 生成成功！');
+console.log('📊 分类统计：', Object.keys(projectData).map(k => `${k}: ${projectData[k].length}`).join(', '));
