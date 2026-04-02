@@ -85,9 +85,9 @@ function generateFeedHtml(categoryKey) {
 }
 
 const pageTemplates = {
-    works: generateFeedHtml('works', '精选案例'),
+    works: generateFeedHtml('works', '3D视觉'),
     cinematic: generateFeedHtml('cinematic', '动态创意'),
-    commercial: generateFeedHtml('commercial', '投放实效'),
+    commercial: generateFeedHtml('commercial', '投放爆款'),
     about: `
    <div class="page-secondary resume-root">
         <div class="system-selection-trigger" id="whyMeBtn">
@@ -405,29 +405,52 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 function getDisplayTitle(key) {
-    const titles = { works: '精选案例', cinematic: '动态创意', commercial: '投放实效' };
+    const titles = { works: '3D视觉', cinematic: '动态创意', commercial: '投放爆款' };
     return titles[key] || '作品详情';
 }
 
 
 
 
-function initVideoFirstFrame(){
-    const videos = document.querySelectorAll(".lazy-video");
-    videos.forEach(video=>{
-        if(!video.src && video.dataset && video.dataset.src){
-            video.preload = "metadata";
-            video.src = video.dataset.src;
-            video.load();
+function initVideoFirstFrame() {
+    const isMobile = window.innerWidth <= 768;
 
-            video.addEventListener("loadeddata",()=>{
-                try{
-                    video.currentTime = 0.01;
-                }catch(e){}
+    if (isMobile) {
+        // 手机端：只加载当前激活的 slide 视频
+        const activeSlide = document.querySelector('.system-slide.active');
+        if (activeSlide) {
+            const video = activeSlide.querySelector('.lazy-video');
+            if (video && !video.src && video.dataset.src) {
+                video.src = video.dataset.src;
+                video.load();
+                video.currentTime = 0.01;
                 video.style.opacity = 1;
-            },{once:true});
+            }
         }
-    });
+        return;
+    }
+
+    // 桌面端：使用 IntersectionObserver 滚动到才加载
+    const lazyVideos = document.querySelectorAll('.lazy-video:not([data-loaded])');
+    if (!lazyVideos.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const video = entry.target;
+                if (!video.src && video.dataset.src) {
+                    video.src = video.dataset.src;
+                    video.load();
+                    video.currentTime = 0.01;
+                    video.style.opacity = 1;
+                    video.setAttribute('data-loaded', 'true');
+                }
+                observer.unobserve(video);
+            }
+        });
+    }, { rootMargin: '200px' });
+
+    lazyVideos.forEach(video => observer.observe(video));
 }
 
 
@@ -457,11 +480,11 @@ window.moveSlide = function(direction) {
     const slides = document.querySelectorAll('.system-slide');
     if (!slides || slides.length === 0) return;
 
-    // 暂停当前视频并重置进度
+    // 暂停旧视频
     const oldVid = slides[window.currentSlide].querySelector('video');
-    if(oldVid) {
+    if (oldVid) {
         oldVid.pause();
-        oldVid.currentTime = 0; 
+        oldVid.currentTime = 0;
     }
     slides[window.currentSlide].classList.remove('active');
 
@@ -471,13 +494,16 @@ window.moveSlide = function(direction) {
     nextSlide.classList.add('active');
 
     const idxSpan = document.getElementById('current-idx');
-    if(idxSpan) idxSpan.innerText = window.currentSlide + 1;
+    if (idxSpan) idxSpan.innerText = window.currentSlide + 1;
 
-    // 播放下一张视频并确保从头开始
+    // 加载并播放新视频
     const newVid = nextSlide.querySelector('video');
-    if(newVid) {
-        if(!newVid.src) newVid.src = newVid.dataset.src;
-        newVid.currentTime = 0; 
+    if (newVid) {
+        if (!newVid.src && newVid.dataset.src) {
+            newVid.src = newVid.dataset.src;
+            newVid.load();
+        }
+        newVid.currentTime = 0;
         newVid.play().catch(() => {});
     }
 };
