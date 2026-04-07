@@ -511,6 +511,7 @@ function initVideoFirstFrame() {
                         video.addEventListener('loadedmetadata', () => { video.currentTime = 0.01; }, { once: true });
                         const onCanPlay = () => {
                             if (container) container.classList.remove('loading');
+                            video.style.opacity = 1;
                             // 关键：自动播放视频（静音自动播放允许）
                             video.play().catch(e => console.log('自动播放失败', e));
                             video.removeEventListener('canplay', onCanPlay);
@@ -535,6 +536,7 @@ function initVideoFirstFrame() {
 window.toggleVideoFullscreen = function(wrapper) {
     const video = wrapper.querySelector('video');
     if (!video) return;
+    video.style.opacity = 1;
     if (!video.src && video.dataset.src) {
         video.src = video.dataset.src;
         video.load();
