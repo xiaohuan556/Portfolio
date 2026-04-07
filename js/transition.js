@@ -27,12 +27,13 @@ function generateFeedHtml(categoryKey) {
 
     const contentHtml = filteredItems.map((item, index) => {
        // 电脑端结构
+        // 电脑端结构 - 使用 data-src，不直接加载
         if (!isMobile) {
             return `
                 <section class="feed-item">
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
-                            <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
+                            <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
                             <div class="video-loading"></div>
                         </div>
                     </div>
@@ -430,15 +431,13 @@ function initVideoFirstFrame() {
     const allVideos = document.querySelectorAll('.lazy-video');
 
     if (isMobile) {
+        // 手机端：简化 loading 逻辑，不等 canplay
         allVideos.forEach(video => {
             const container = video.closest('.video-container');
-            // 显示 loading（如果视频还未加载完成）
-            if (video.readyState < 2) { // HAVE_CURRENT_DATA 或更低
-                container.classList.add('loading');
-            } else {
-                container.classList.remove('loading');
-            }
-
+            
+            // 默认先隐藏 loading（如果之前有）
+            if (container) container.classList.remove('loading');
+            
             // 设置首帧
             if (video.readyState >= 1) {
                 video.currentTime = 0.01;
@@ -448,14 +447,7 @@ function initVideoFirstFrame() {
                     video.removeEventListener('loadedmetadata', onMeta);
                 }, { once: true });
             }
-
-            // 加载完成后隐藏 loading
-            const onCanPlay = () => {
-                container.classList.remove('loading');
-                video.removeEventListener('canplay', onCanPlay);
-            };
-            video.addEventListener('canplay', onCanPlay, { once: true });
-
+            
             video.style.opacity = 1;
         });
 
@@ -468,104 +460,50 @@ function initVideoFirstFrame() {
             }
         }
     } else {
-        // 电脑端同样逻辑
-        allVideos.forEach(video => {
-            const container = video.closest('.video-container');
-            if (video.readyState < 2) {
-                container.classList.add('loading');
-            } else {
-                container.classList.remove('loading');
-            }
-
-            if (video.readyState >= 1) {
-                video.currentTime = 0.01;
-            } else {
-                video.addEventListener('loadedmetadata', function onMeta() {
-                    video.currentTime = 0.01;
-                    video.removeEventListener('loadedmetadata', onMeta);
-                }, { once: true });
-            }
-
-            const onCanPlay = () => {
-                container.classList.remove('loading');
-                video.removeEventListener('canplay', onCanPlay);
-            };
-            video.addEventListener('canplay', onCanPlay, { once: true });
-
-            video.style.opacity = 1;
-        });
-
-        const firstVideo = allVideos[0];
-        if (firstVideo && firstVideo.readyState >= 2) {
-            firstVideo.play().catch(() => {});
-        }
+        // 电脑端：懒加载（保持不变）
+        const lazyVideos = document.querySelectorAll('.lazy-video[data-src]:not([data-loaded])');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const video = entry.target;
+                    const src = video.dataset.src;
+                    const container = video.closest('.video-container');
+                    
+                    if (src && !video.src) {
+                        if (container) container.classList.add('loading');
+                        
+                        video.src = src;
+                        video.load();
+                        
+                        video.addEventListener('loadedmetadata', function onMeta() {
+                            video.currentTime = 0.01;
+                            video.removeEventListener('loadedmetadata', onMeta);
+                        }, { once: true });
+                        
+                        const onCanPlay = () => {
+                            if (container) container.classList.remove('loading');
+                            video.removeEventListener('canplay', onCanPlay);
+                        };
+                        video.addEventListener('canplay', onCanPlay, { once: true });
+                        
+                        // 5秒超时强制隐藏 loading
+                        setTimeout(() => {
+                            if (container && container.classList.contains('loading')) {
+                                container.classList.remove('loading');
+                            }
+                        }, 5000);
+                        
+                        video.setAttribute('data-loaded', 'true');
+                    }
+                    observer.unobserve(video);
+                }
+            });
+        }, { rootMargin: '200px' });
+        
+        lazyVideos.forEach(video => observer.observe(video));
     }
 }
-
-document.addEventListener("DOMContentLoaded",()=>{
-    initVideoFirstFrame();
-});
-
-
-
-
-// 手机端专用：翻页控制
-window.currentSlide = 0;
-let isMoving = false;  // 全局锁
-
-window.moveSlide = function(direction) {
-    if (isMoving) return;  // 正在切换，忽略新请求
-    isMoving = true;
-
-    const slides = document.querySelectorAll('.system-slide');
-    if (!slides.length) {
-        isMoving = false;
-        return;
-    }
-
-    // 暂停旧视频...
-    const oldVid = slides[window.currentSlide].querySelector('video');
-    if (oldVid) {
-        oldVid.pause();
-        oldVid.currentTime = 0;
-    }
-    slides[window.currentSlide].classList.remove('active');
-
-    window.currentSlide = (window.currentSlide + direction + slides.length) % slides.length;
-
-    const nextSlide = slides[window.currentSlide];
-    nextSlide.classList.add('active');
-
-    const idxSpan = document.getElementById('current-idx');
-    if (idxSpan) idxSpan.innerText = window.currentSlide + 1;
-
-    // 加载并播放新视频
-    const newVid = nextSlide.querySelector('video');
-    if (newVid) {
-        const container = newVid.closest('.video-container');
-        if (container) container.classList.add('loading'); // 显示 loading
-
-        if (!newVid.src && newVid.dataset?.src) {
-            newVid.src = newVid.dataset.src;
-            newVid.load();
-        }
-
-        const onCanPlay = () => {
-            if (container) container.classList.remove('loading');
-            newVid.removeEventListener('canplay', onCanPlay);
-            isMoving = false;  // 解锁
-        };
-        newVid.addEventListener('canplay', onCanPlay, { once: true });
-
-        newVid.currentTime = 0;
-        newVid.play().catch(() => {
-            if (container) container.classList.remove('loading');
-            isMoving = false;
-        });
-    } else {
-        isMoving = false;
-    }
-};
 // 确保全屏功能在手机端可用（添加事件委托，防止动态元素丢失）
 document.addEventListener('click', function(e) {
     const videoContainer = e.target.closest('.video-container');
