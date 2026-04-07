@@ -26,15 +26,13 @@ function generateFeedHtml(categoryKey) {
     }
 
     const contentHtml = filteredItems.map((item, index) => {
-        // 电脑端结构
-        // 电脑端结构 - 直接使用 src 而不是 data-src
+       // 电脑端结构
         if (!isMobile) {
             return `
                 <section class="feed-item">
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
-                            <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
-                            <!-- preload="metadata" 保证第一帧能显示，且不下载全部视频 -->
+                            <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
                         </div>
                     </div>
                     <div class="project-info-simple">
@@ -338,13 +336,13 @@ function loadPage(key) { Transitioner.animateTo(key); }
 async function backToHome() {
     document.body.classList.add('is-transitioning');
     
-    // 关键修改：移除所有视频元素，而不是只暂停
+    // 彻底移除所有视频
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
         v.pause();
-        v.src = '';        // 清空 src，释放网络资源
-        v.load();          // 重新加载空源，彻底停止请求
-        v.remove();        // 从 DOM 中移除
+        v.src = '';
+        v.load();
+        v.remove();
     });
 
     await new Promise(r => setTimeout(r, 800));
@@ -354,7 +352,6 @@ async function backToHome() {
         anchor.innerHTML = window.initialHomeHTML;
     }
 
-    // 状态重置
     document.body.classList.remove('in-subpage');
     const canvas = document.getElementById('canvas-webgl');
     if(canvas) canvas.classList.remove('bg-blur');
@@ -379,9 +376,11 @@ window.toggleVideoFullscreen = function(wrapper) {
     const video = wrapper.querySelector('video');
     if (!video) return;
 
+    // 如果还没有 src，从 data-src 取
     if (!video.src && video.dataset.src) {
         video.src = video.dataset.src;
         video.load();
+        video.currentTime = 0.01;
     }
 
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
@@ -425,35 +424,10 @@ function getDisplayTitle(key) {
 // 替换 initVideoFirstFrame 函数
 function initVideoFirstFrame() {
     const isMobile = window.innerWidth <= 768;
-    const allVideos = document.querySelectorAll('.lazy-video');
-
+    
     if (isMobile) {
-        allVideos.forEach(video => {
-            // 如果视频已经有 src 且 readyState 为 0（未开始加载），则启动加载
-            if (video.src && video.readyState === 0) {
-                video.load();
-            }
-            // 等待元数据加载后再设置首帧（避免打断）
-            if (video.readyState >= 1) { // HAVE_METADATA
-                video.currentTime = 0.01;
-            } else {
-                video.addEventListener('loadedmetadata', function onMeta() {
-                    video.currentTime = 0.01;
-                    video.removeEventListener('loadedmetadata', onMeta);
-                }, { once: true });
-            }
-            video.style.opacity = 1;
-        });
-        // 自动播放当前激活 slide 的视频（仅当未播放且准备好时）
-        const activeSlide = document.querySelector('.system-slide.active');
-        if (activeSlide) {
-            const activeVideo = activeSlide.querySelector('video');
-            if (activeVideo && activeVideo.readyState >= 2 && activeVideo.paused) {
-                activeVideo.play().catch(e => console.log('自动播放失败', e));
-            }
-        }
-    } else {
-        // 电脑端同理优化
+        // 手机端：直接加载所有视频（数量少）
+        const allVideos = document.querySelectorAll('.lazy-video');
         allVideos.forEach(video => {
             if (video.src && video.readyState === 0) {
                 video.load();
@@ -468,16 +442,62 @@ function initVideoFirstFrame() {
             }
             video.style.opacity = 1;
         });
-        const firstVideo = allVideos[0];
-        if (firstVideo && firstVideo.readyState >= 2) {
-            firstVideo.play().catch(() => {});
+        // 自动播放当前激活的视频
+        const activeSlide = document.querySelector('.system-slide.active');
+        if (activeSlide) {
+            const activeVideo = activeSlide.querySelector('video');
+            if (activeVideo && activeVideo.readyState >= 2 && activeVideo.paused) {
+                activeVideo.play().catch(e => console.log('自动播放失败', e));
+            }
         }
+    } else {
+        // 电脑端：懒加载，滚动到才加载
+        const lazyVideos = document.querySelectorAll('.lazy-video[data-src]');
+        
+        lazyVideos.forEach(video => {
+            // 如果已经加载过了，跳过
+            if (video.hasAttribute('data-loaded')) return;
+            
+            // 只设置首帧占位（使用 poster 或透明度，不实际加载视频）
+            video.style.opacity = 1;
+            video.style.backgroundColor = '#1a1a1a';
+        });
+        
+        // 使用 IntersectionObserver 监听滚动
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const video = entry.target;
+                    const src = video.getAttribute('data-src');
+                    
+                    if (src && !video.src) {
+                        // 加载视频
+                        video.src = src;
+                        video.load();
+                        
+                        // 加载完成后设置第一帧
+                        video.addEventListener('loadedmetadata', function onMeta() {
+                            video.currentTime = 0.01;
+                            video.removeEventListener('loadedmetadata', onMeta);
+                        }, { once: true });
+                        
+                        // 标记已加载
+                        video.setAttribute('data-loaded', 'true');
+                    }
+                    
+                    // 停止观察这个视频
+                    observer.unobserve(video);
+                }
+            });
+        }, { 
+            rootMargin: '200px',  // 提前200px开始加载
+            threshold: 0.01
+        });
+        
+        // 开始观察所有懒加载视频
+        lazyVideos.forEach(video => observer.observe(video));
     }
 }
-
-
-
-
 
 document.addEventListener("DOMContentLoaded",()=>{
     initVideoFirstFrame();
