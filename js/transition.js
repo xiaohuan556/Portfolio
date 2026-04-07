@@ -310,6 +310,10 @@ const Transitioner = {
         initVideoFirstFrame(); // 改用你新写的函数名
     }
     window.currentSlide = 0; 
+    // 新增：初始化手机端滑动功能
+    if (window.innerWidth <= 768) {
+        initMobileSlideshow();
+    }
 }
     }
 
@@ -511,4 +515,178 @@ document.addEventListener('click', function(e) {
         toggleVideoFullscreen(videoContainer);
     }
 });
-// 注意：原来 video-container 上的 onclick 可以保留，但为了防止重复触发，可以移除或保留两者均可
+
+// ======================= 新增：手机端滑动控制逻辑 =======================
+window.currentSlide = 0;        // 全局当前索引
+let slidesCount = 0;            // 总slide数量
+let slidesContainer = null;     // slides容器（.slides-viewport 内部的滑动列表容器）
+let touchStartX = 0;
+let touchEndX = 0;
+
+/**
+ * 初始化手机端轮播（每次切换页面后调用）
+ */
+function initMobileSlideshow() {
+    // 仅在手机端且存在 .system-slide 元素时执行
+    if (window.innerWidth > 768) return;
+    
+    slidesContainer = document.querySelector('.slides-viewport');
+    if (!slidesContainer) return;
+    
+    const slides = document.querySelectorAll('.system-slide');
+    slidesCount = slides.length;
+    if (slidesCount === 0) return;
+    
+    // 重置索引
+    window.currentSlide = 0;
+    updateSlidesVisibility();
+    updateProgressInfo();
+    
+    // 播放当前视频，暂停其他
+    controlVideoPlayback();
+    
+    // 绑定触摸事件
+    slidesContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    slidesContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    slidesContainer.addEventListener('touchend', handleTouchEnd);
+    
+    // 可选：添加滚轮支持（电脑调试手机模式）
+    slidesContainer.addEventListener('wheel', handleWheel, { passive: false });
+}
+
+/**
+ * 更新所有slide的显示/隐藏（通过display或translate，这里用display切换）
+ * 注意：保留DOM结构，仅切换可见性，以保证视频播放/暂停状态可控
+ */
+function updateSlidesVisibility() {
+    const slides = document.querySelectorAll('.system-slide');
+    slides.forEach((slide, idx) => {
+        if (idx === window.currentSlide) {
+            slide.classList.add('active');
+            slide.style.display = 'flex';   // 或 block，根据原样式
+        } else {
+            slide.classList.remove('active');
+            slide.style.display = 'none';
+        }
+    });
+}
+
+/**
+ * 更新底部进度数字
+ */
+function updateProgressInfo() {
+    const currentSpan = document.getElementById('current-idx');
+    if (currentSpan) {
+        currentSpan.innerText = window.currentSlide + 1;
+    }
+}
+
+/**
+ * 控制视频播放：仅播放当前激活slide中的视频，其余暂停
+ */
+function controlVideoPlayback() {
+    const slides = document.querySelectorAll('.system-slide');
+    slides.forEach((slide, idx) => {
+        const video = slide.querySelector('video');
+        if (!video) return;
+        if (idx === window.currentSlide) {
+            // 当前slide：尝试播放
+            if (video.paused && video.readyState >= 2) {
+                video.play().catch(e => console.log('自动播放被阻止', e));
+            }
+        } else {
+            // 非当前slide：暂停并重置到首帧（可选）
+            if (!video.paused) {
+                video.pause();
+            }
+            video.currentTime = 0.01;
+        }
+    });
+}
+
+/**
+ * 移动slide（方向：delta = -1 左滑（上一个），1 右滑（下一个））
+ */
+function moveSlide(delta) {
+    let newIndex = window.currentSlide + delta;
+    if (newIndex < 0) newIndex = 0;
+    if (newIndex >= slidesCount) newIndex = slidesCount - 1;
+    if (newIndex === window.currentSlide) return;
+    
+    window.currentSlide = newIndex;
+    updateSlidesVisibility();
+    updateProgressInfo();
+    controlVideoPlayback();
+}
+
+// 触摸事件处理
+function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+}
+
+function handleTouchMove(e) {
+    if (!touchStartX) return;
+    touchEndX = e.touches[0].clientX;
+    const diff = touchEndX - touchStartX;
+    // 允许横向滑动时阻止页面滚动（可选）
+    if (Math.abs(diff) > 10) {
+        e.preventDefault();
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!touchStartX || !touchEndX) {
+        touchStartX = 0;
+        return;
+    }
+    const diff = touchEndX - touchStartX;
+    const threshold = 50; // 滑动阈值
+    if (diff > threshold) {
+        // 右滑 -> 上一个
+        moveSlide(-1);
+    } else if (diff < -threshold) {
+        // 左滑 -> 下一个
+        moveSlide(1);
+    }
+    touchStartX = 0;
+    touchEndX = 0;
+}
+
+// 滚轮支持（用于调试，可选）
+function handleWheel(e) {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        e.preventDefault();
+        if (e.deltaX > 0) {
+            moveSlide(1);
+        } else if (e.deltaX < 0) {
+            moveSlide(-1);
+        }
+    }
+}
+
+// 暴露 moveSlide 到全局（已在HTML中通过 onclick 调用，但需确保覆盖原未定义）
+window.moveSlide = moveSlide;
+
+// 当窗口大小改变时，如果从手机切换到电脑或反之，可能需要重新初始化或清理
+window.addEventListener('resize', () => {
+    if (window.innerWidth <= 768) {
+        // 如果当前页面是作品集且尚未初始化滑动，尝试初始化
+        if (document.querySelector('.system-slide') && !slidesContainer) {
+            initMobileSlideshow();
+        }
+    } else {
+        // 非手机端，清理触摸事件，恢复所有slide显示（以防万一）
+        if (slidesContainer) {
+            slidesContainer.removeEventListener('touchstart', handleTouchStart);
+            slidesContainer.removeEventListener('touchmove', handleTouchMove);
+            slidesContainer.removeEventListener('touchend', handleTouchEnd);
+            slidesContainer.removeEventListener('wheel', handleWheel);
+            slidesContainer = null;
+        }
+        // 恢复所有slide显示
+        const slides = document.querySelectorAll('.system-slide');
+        slides.forEach(slide => {
+            slide.style.display = '';
+        });
+    }
+});
