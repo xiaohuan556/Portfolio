@@ -1,6 +1,13 @@
 function generateFeedHtml(categoryKey) {
     // 1. 核心自动化修改：直接从 projectData 中按 key 取对应的数组
     // 比如传入 'works'，就取 projectData.works
+    // 清理旧的视频元素，防止残留
+    const oldVideos = document.querySelectorAll('.lazy-video');
+    oldVideos.forEach(v => {
+        v.pause();
+        v.src = '';
+        v.remove();
+    });
     const data = (typeof projectData !== 'undefined') ? projectData : { works:[], cinematic:[], commercial:[] };
     const filteredItems = data[categoryKey] || [];
 
@@ -331,11 +338,13 @@ function loadPage(key) { Transitioner.animateTo(key); }
 async function backToHome() {
     document.body.classList.add('is-transitioning');
     
-    // 只停止正在播放的视频，不要 remove 它们
+    // 关键修改：移除所有视频元素，而不是只暂停
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
         v.pause();
-        // v.remove(); // 删掉这一行！不要删除元素
+        v.src = '';        // 清空 src，释放网络资源
+        v.load();          // 重新加载空源，彻底停止请求
+        v.remove();        // 从 DOM 中移除
     });
 
     await new Promise(r => setTimeout(r, 800));
@@ -350,9 +359,7 @@ async function backToHome() {
     const canvas = document.getElementById('canvas-webgl');
     if(canvas) canvas.classList.remove('bg-blur');
     
-    // 恢复 body 的滚动（如果之前被锁死的话）
     document.body.style.overflow = ''; 
-
     window.scrollTo(0, 0);
 
     setTimeout(() => {
