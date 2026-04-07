@@ -44,11 +44,12 @@ function generateFeedHtml(categoryKey) {
         }
         // 手机端结构（维持你调试好的原样）
         // 修改 generateFeedHtml 中的手机端部分（约第44行）
+        // 手机端结构
         else {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container">
-                        <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
+                        <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
                     </div>
                     <div class="project-info-simple">
                         <div class="index-tag">CASE_${(index + 1).toString().padStart(2, '0')}</div>
@@ -426,24 +427,34 @@ function initVideoFirstFrame() {
     const isMobile = window.innerWidth <= 768;
     
     if (isMobile) {
-        // 手机端：直接加载所有视频（数量少）
-        const allVideos = document.querySelectorAll('.lazy-video');
-        allVideos.forEach(video => {
-            if (video.src && video.readyState === 0) {
+        // 手机端：只加载当前激活的 slide 视频 + 预加载相邻的
+        const slides = document.querySelectorAll('.system-slide');
+        const activeIndex = Array.from(slides).findIndex(slide => slide.classList.contains('active'));
+        
+        // 需要加载的索引：当前、上一个、下一个
+        const indicesToLoad = [
+            activeIndex,
+            (activeIndex - 1 + slides.length) % slides.length,
+            (activeIndex + 1) % slides.length
+        ];
+        
+        indicesToLoad.forEach(idx => {
+            const slide = slides[idx];
+            if (!slide) return;
+            const video = slide.querySelector('video');
+            if (video && video.dataset.src && !video.src) {
+                video.src = video.dataset.src;
                 video.load();
-            }
-            if (video.readyState >= 1) {
-                video.currentTime = 0.01;
-            } else {
                 video.addEventListener('loadedmetadata', function onMeta() {
                     video.currentTime = 0.01;
                     video.removeEventListener('loadedmetadata', onMeta);
                 }, { once: true });
+                video.style.opacity = 1;
             }
-            video.style.opacity = 1;
         });
-        // 自动播放当前激活的视频
-        const activeSlide = document.querySelector('.system-slide.active');
+        
+        // 自动播放当前视频
+        const activeSlide = slides[activeIndex];
         if (activeSlide) {
             const activeVideo = activeSlide.querySelector('video');
             if (activeVideo && activeVideo.readyState >= 2 && activeVideo.paused) {
@@ -529,30 +540,34 @@ window.moveSlide = function(direction) {
     const idxSpan = document.getElementById('current-idx');
     if (idxSpan) idxSpan.innerText = window.currentSlide + 1;
 
-    // 预加载当前、上一个、下一个视频（确保可播放）
-    const indicesToPreload = [
-        window.currentSlide,
-        (window.currentSlide - 1 + slides.length) % slides.length,
-        (window.currentSlide + 1) % slides.length
-    ];
-    indicesToPreload.forEach(idx => {
-        const slide = slides[idx];
-        const video = slide.querySelector('video');
-        if (video && video.readyState < 2) { // HAVE_CURRENT_DATA 或更低
-            if (!video.src && video.dataset?.src) video.src = video.dataset.src;
-            if (video.src) {
-                video.load();
-                video.currentTime = 0.01;
-            }
+    // 加载当前视频（如果还没加载）
+    const newVid = nextSlide.querySelector('video');
+    if (newVid && !newVid.src && newVid.dataset.src) {
+        newVid.src = newVid.dataset.src;
+        newVid.load();
+        newVid.addEventListener('loadedmetadata', function onMeta() {
+            newVid.currentTime = 0.01;
+            newVid.removeEventListener('loadedmetadata', onMeta);
+        }, { once: true });
+    }
+    
+    // 预加载下一个视频
+    const nextIndex = (window.currentSlide + 1) % slides.length;
+    const nextNextSlide = slides[nextIndex];
+    if (nextNextSlide) {
+        const nextNextVid = nextNextSlide.querySelector('video');
+        if (nextNextVid && !nextNextVid.src && nextNextVid.dataset.src) {
+            nextNextVid.src = nextNextVid.dataset.src;
+            nextNextVid.load();
+            nextNextVid.addEventListener('loadedmetadata', function onMeta() {
+                nextNextVid.currentTime = 0.01;
+                nextNextVid.removeEventListener('loadedmetadata', onMeta);
+            }, { once: true });
         }
-    });
+    }
 
     // 播放当前视频
-    const newVid = nextSlide.querySelector('video');
-    if (newVid) {
-        if (newVid.readyState < 2) {
-            newVid.load();
-        }
+    if (newVid && newVid.readyState >= 2) {
         newVid.currentTime = 0;
         newVid.play().catch(() => {});
     }
