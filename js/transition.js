@@ -20,12 +20,14 @@ function generateFeedHtml(categoryKey) {
 
     const contentHtml = filteredItems.map((item, index) => {
         // 电脑端结构
+        // 电脑端结构 - 直接使用 src 而不是 data-src
         if (!isMobile) {
             return `
                 <section class="feed-item">
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
-                            <video class="lazy-video" loop muted playsinline data-src="${item.videoUrl}"></video>
+                            <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
+                            <!-- preload="metadata" 保证第一帧能显示，且不下载全部视频 -->
                         </div>
                     </div>
                     <div class="project-info-simple">
@@ -34,13 +36,14 @@ function generateFeedHtml(categoryKey) {
                     </div>
                 </section>
             `;
-        } 
+        }
         // 手机端结构（维持你调试好的原样）
+        // 修改 generateFeedHtml 中的手机端部分（约第44行）
         else {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
-                    <div class="video-container" onclick="toggleVideoFullscreen(this)">
-                        <video class="lazy-video" loop muted playsinline data-src="${item.videoUrl}"></video>
+                    <div class="video-container">
+                        <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
                     </div>
                     <div class="project-info-simple">
                         <div class="index-tag">CASE_${(index + 1).toString().padStart(2, '0')}</div>
@@ -412,45 +415,38 @@ function getDisplayTitle(key) {
 
 
 
+// 替换 initVideoFirstFrame 函数
 function initVideoFirstFrame() {
     const isMobile = window.innerWidth <= 768;
+    const allVideos = document.querySelectorAll('.lazy-video');
 
     if (isMobile) {
-        // 手机端：只加载当前激活的 slide 视频
+        // 手机端：为所有视频设置首帧，但只自动播放当前激活的
+        allVideos.forEach(video => {
+            if (video.readyState === 0) {
+                video.load(); // 触发加载元数据
+            }
+            video.currentTime = 0.01;
+            video.style.opacity = 1;
+        });
+        // 自动播放当前激活 slide 的视频
         const activeSlide = document.querySelector('.system-slide.active');
         if (activeSlide) {
-            const video = activeSlide.querySelector('.lazy-video');
-            if (video && !video.src && video.dataset.src) {
-                video.src = video.dataset.src;
-                video.load();
-                video.currentTime = 0.01;
-                video.style.opacity = 1;
+            const activeVideo = activeSlide.querySelector('video');
+            if (activeVideo) {
+                activeVideo.play().catch(e => console.log('自动播放失败', e));
             }
         }
-        return;
-    }
-
-    // 桌面端：使用 IntersectionObserver 滚动到才加载
-    const lazyVideos = document.querySelectorAll('.lazy-video:not([data-loaded])');
-    if (!lazyVideos.length) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const video = entry.target;
-                if (!video.src && video.dataset.src) {
-                    video.src = video.dataset.src;
-                    video.load();
-                    video.currentTime = 0.01;
-                    video.style.opacity = 1;
-                    video.setAttribute('data-loaded', 'true');
-                }
-                observer.unobserve(video);
-            }
+    } else {
+        // 电脑端逻辑保持不变（已有）
+        allVideos.forEach(video => {
+            if (video.readyState === 0) video.load();
+            video.currentTime = 0.01;
+            video.style.opacity = 1;
         });
-    }, { rootMargin: '200px' });
-
-    lazyVideos.forEach(video => observer.observe(video));
+        const firstVideo = allVideos[0];
+        if (firstVideo) firstVideo.play().catch(() => {});
+    }
 }
 
 
@@ -476,9 +472,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 // 手机端专用：翻页控制
 window.currentSlide = 0;
+// 优化 moveSlide 函数，预加载相邻视频
 window.moveSlide = function(direction) {
     const slides = document.querySelectorAll('.system-slide');
-    if (!slides || slides.length === 0) return;
+    if (!slides.length) return;
 
     // 暂停旧视频
     const oldVid = slides[window.currentSlide].querySelector('video');
@@ -496,14 +493,39 @@ window.moveSlide = function(direction) {
     const idxSpan = document.getElementById('current-idx');
     if (idxSpan) idxSpan.innerText = window.currentSlide + 1;
 
-    // 加载并播放新视频
+    // 预加载当前、上一个、下一个视频（确保可播放）
+    const indicesToPreload = [
+        window.currentSlide,
+        (window.currentSlide - 1 + slides.length) % slides.length,
+        (window.currentSlide + 1) % slides.length
+    ];
+    indicesToPreload.forEach(idx => {
+        const slide = slides[idx];
+        const video = slide.querySelector('video');
+        if (video && video.readyState < 2) { // HAVE_CURRENT_DATA 或更低
+            if (!video.src && video.dataset?.src) video.src = video.dataset.src;
+            if (video.src) {
+                video.load();
+                video.currentTime = 0.01;
+            }
+        }
+    });
+
+    // 播放当前视频
     const newVid = nextSlide.querySelector('video');
     if (newVid) {
-        if (!newVid.src && newVid.dataset.src) {
-            newVid.src = newVid.dataset.src;
+        if (newVid.readyState < 2) {
             newVid.load();
         }
         newVid.currentTime = 0;
         newVid.play().catch(() => {});
     }
 };
+// 确保全屏功能在手机端可用（添加事件委托，防止动态元素丢失）
+document.addEventListener('click', function(e) {
+    const videoContainer = e.target.closest('.video-container');
+    if (videoContainer && videoContainer.closest('.system-slide')) {
+        toggleVideoFullscreen(videoContainer);
+    }
+});
+// 注意：原来 video-container 上的 onclick 可以保留，但为了防止重复触发，可以移除或保留两者均可
