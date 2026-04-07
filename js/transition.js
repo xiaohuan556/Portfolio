@@ -421,50 +421,59 @@ function initVideoFirstFrame() {
     const allVideos = document.querySelectorAll('.lazy-video');
 
     if (isMobile) {
-        // 手机端：为所有视频设置首帧，但只自动播放当前激活的
         allVideos.forEach(video => {
-            if (video.readyState === 0) {
-                video.load(); // 触发加载元数据
+            // 如果视频已经有 src 且 readyState 为 0（未开始加载），则启动加载
+            if (video.src && video.readyState === 0) {
+                video.load();
             }
-            video.currentTime = 0.01;
+            // 等待元数据加载后再设置首帧（避免打断）
+            if (video.readyState >= 1) { // HAVE_METADATA
+                video.currentTime = 0.01;
+            } else {
+                video.addEventListener('loadedmetadata', function onMeta() {
+                    video.currentTime = 0.01;
+                    video.removeEventListener('loadedmetadata', onMeta);
+                }, { once: true });
+            }
             video.style.opacity = 1;
         });
-        // 自动播放当前激活 slide 的视频
+        // 自动播放当前激活 slide 的视频（仅当未播放且准备好时）
         const activeSlide = document.querySelector('.system-slide.active');
         if (activeSlide) {
             const activeVideo = activeSlide.querySelector('video');
-            if (activeVideo) {
+            if (activeVideo && activeVideo.readyState >= 2 && activeVideo.paused) {
                 activeVideo.play().catch(e => console.log('自动播放失败', e));
             }
         }
     } else {
-        // 电脑端逻辑保持不变（已有）
+        // 电脑端同理优化
         allVideos.forEach(video => {
-            if (video.readyState === 0) video.load();
-            video.currentTime = 0.01;
+            if (video.src && video.readyState === 0) {
+                video.load();
+            }
+            if (video.readyState >= 1) {
+                video.currentTime = 0.01;
+            } else {
+                video.addEventListener('loadedmetadata', function onMeta() {
+                    video.currentTime = 0.01;
+                    video.removeEventListener('loadedmetadata', onMeta);
+                }, { once: true });
+            }
             video.style.opacity = 1;
         });
         const firstVideo = allVideos[0];
-        if (firstVideo) firstVideo.play().catch(() => {});
+        if (firstVideo && firstVideo.readyState >= 2) {
+            firstVideo.play().catch(() => {});
+        }
     }
 }
 
 
-function observeVideoInjection(){
-    const observer = new MutationObserver(()=>{
-        initVideoFirstFrame();
-    });
 
-    observer.observe(document.body,{
-        childList:true,
-        subtree:true
-    });
-}
 
 
 document.addEventListener("DOMContentLoaded",()=>{
     initVideoFirstFrame();
-    observeVideoInjection();
 });
 
 
