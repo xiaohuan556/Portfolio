@@ -245,21 +245,6 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
 .resume-header { display: flex; flex-direction: column; align-items: flex-start !important; text-align: left !important; gap: 15px; margin-top: 30px; }
 .header-info { display: flex; flex-direction: column; }
 
-/* 电脑端独立适配 */
-@media (min-width: 769px) {
-    .resume-scroll-container { max-width: 1200px; margin: 0 auto; padding: 40px 60px 100px; }
-    .resume-header { flex-direction: row; align-items: flex-start; gap: 50px; margin-top: 60px; }
-    .expert-name { font-size: 6rem; letter-spacing: -3px; }
-    .header-info { flex: 1; margin-top: 10px; }
-    .expert-title { font-size: 2.2rem; letter-spacing: 2px; }
-    .impact-grid { grid-template-columns: repeat(2, 1fr); gap: 25px; }
-    .expert-tags span { font-size: 13px; }
-    .pdf-btn { display: inline-block; width: auto; padding: 20px 80px; }
-    .resume-footer{ display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 60px; }
-    .resume-footer .pdf-btn{ display: inline-block; margin-bottom: 12px; }
-    
-}
-
 /* ==========================================================================
    6. 关键帧动画字典
    ========================================================================== */
@@ -629,7 +614,6 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     }
 
     /* 3. 背景装饰：用极其暗淡的“呼吸光带”代替杂乱网格 */
-    /* 这种效果不会产生细碎线条，不会干扰视频观看 */
     .page-secondary::before,
     .resume-root::before,
     .virtual-scroll-system::before {
@@ -648,7 +632,6 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
     }
 
     /* 4. 返回按钮：赛博精修版 */
-    /* 确保类名对应 HTML 中的 .back-btn-cyber */
     .back-btn-cyber {
         display: flex !important;
         position: fixed !important;
@@ -673,7 +656,6 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
         transform: translateX(-5px);
     }
 
-    /* 按钮内部零件 */
     .back-btn-icon { 
         color: #00f2ff !important; 
         border-right: 1px solid rgba(0, 242, 255, 0.2) !important; 
@@ -693,4 +675,36 @@ body.loaded .nav-item-more { animation: fadeInUp 1s ease forwards 1.0s; }
         opacity: 0.5 !important; 
         font-family: 'Space Mono', monospace !important;
     }
-} 
+
+    /* ========== 新增：视频列表卡片间距优化 + 显示完全 ========== */
+    .feed-item {
+        margin-bottom: 100px !important;   /* 拉开视频之间的垂直距离 */
+        padding-bottom: 40px !important;
+        min-height: auto !important;       /* 避免强制占满全屏导致显示不全 */
+        height: auto !important;
+        scroll-snap-align: start;
+    }
+    .video-container {
+        max-width: 560px;
+        margin: 0 auto;
+    }
+    .project-info-simple {
+        margin-top: 30px;                  /* 描述词与视频之间留白 */
+        max-width: 560px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (min-width: 769px) {
+    .resume-scroll-container { max-width: 1200px; margin: 0 auto; padding: 40px 60px 100px; }
+    .resume-header { flex-direction: row; align-items: flex-start; gap: 50px; margin-top: 60px; }
+    .expert-name { font-size: 6rem; letter-spacing: -3px; }
+    .header-info { flex: 1; margin-top: 10px; }
+    .expert-title { font-size: 2.2rem; letter-spacing: 2px; }
+    .impact-grid { grid-template-columns: repeat(2, 1fr); gap: 25px; }
+    .expert-tags span { font-size: 13px; }
+    .pdf-btn { display: inline-block; width: auto; padding: 20px 80px; }
+    .resume-footer{ display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 60px; }
+    .resume-footer .pdf-btn{ display: inline-block; margin-bottom: 12px; }
+}

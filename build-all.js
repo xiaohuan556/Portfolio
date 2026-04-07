@@ -1,105 +1,98 @@
 const fs = require('fs');
 const path = require('path');
+const XLSX = require('xlsx');
 
+// 配置路径
+const excelPath = path.join(__dirname, '作品集管理.xlsx');
 const videoDir = path.join(__dirname, 'assets/videos');
 const metaFile = path.join(videoDir, 'meta.json');
 const outputFile = path.join(__dirname, 'js/projects.js');
 
-// 读取现有 meta（如果存在）
-let meta = {};
-if (fs.existsSync(metaFile)) {
-    try {
-        meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
-        console.log('📖 已读取现有 meta.json');
-    } catch(e) {
-        console.log('⚠️ meta.json 解析失败，将创建新文件');
-    }
+// 读取 Excel
+if (!fs.existsSync(excelPath)) {
+    console.error('❌ 找不到 Excel 文件:', excelPath);
+    process.exit(1);
 }
 
-// 获取所有视频文件
-const files = fs.readdirSync(videoDir).filter(f => f.endsWith('.mp4'));
+const workbook = XLSX.readFile(excelPath);
+const sheetName = workbook.SheetNames[0];
+const sheet = workbook.Sheets[sheetName];
+const rows = XLSX.utils.sheet_to_json(sheet);
 
-let metaChanged = false;
-let renamedCount = 0;
-
-console.log('📁 扫描到', files.length, '个视频文件\n');
-
-files.forEach(oldName => {
-    // 判断是否已经是短格式（如 01__works.mp4）
-    const isShort = /^\d+__[a-z]+\.mp4$/.test(oldName);
-    if (isShort) {
-        console.log(`⏩ 跳过（已是短格式）: ${oldName}`);
-        return;
-    }
-
-    // 长文件名：编号__分类__标题__描述.mp4
-    const nameWithoutExt = oldName.replace('.mp4', '');
-    const parts = nameWithoutExt.split('__');
-    
-    if (parts.length < 4) {
-        console.log(`⚠️ 格式不正确，跳过: ${oldName}`);
-        return;
-    }
-
-    const id = `${parts[0]}__${parts[1]}`;      // 例如 "01__works"
-    const category = parts[1].toLowerCase();
-    const title = parts[2];
-    const desc = parts.slice(3).join('__');     // 描述可能包含 __
-
-    // 更新 meta
-    if (!meta[id]) {
-        meta[id] = { title, desc };
-        metaChanged = true;
-        console.log(`📝 添加 meta: ${id}`);
-    }
-
-    // 重命名文件
-    const newName = `${id}.mp4`;
-    const oldPath = path.join(videoDir, oldName);
-    const newPath = path.join(videoDir, newName);
-    
-    if (oldPath !== newPath) {
-        fs.renameSync(oldPath, newPath);
-        console.log(`✅ 重命名: ${oldName.substring(0, 50)}... → ${newName}`);
-        renamedCount++;
-    }
-});
-
-// 如果有新视频，保存 meta.json
-if (metaChanged) {
-    fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2));
-    console.log(`\n📝 meta.json 已保存（共 ${Object.keys(meta).length} 条记录）`);
-}
-
-console.log(`\n📊 重命名了 ${renamedCount} 个文件\n`);
-
-// 读取所有短格式文件，生成 projects.js
-const shortFiles = fs.readdirSync(videoDir)
-    .filter(f => f.endsWith('.mp4') && /^\d+__[a-z]+\.mp4$/.test(f))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
+// 存储 meta 和分类数据
+const meta = {};
 const projectData = {
     works: [],
     cinematic: [],
     commercial: []
 };
 
-shortFiles.forEach(file => {
-    const id = file.replace('.mp4', '');
-    const parts = id.split('__');
-    const category = parts[1].toLowerCase();
-    const metaItem = meta[id] || { title: '未命名', desc: '' };
+// 有效的分类映射
+const validCategories = ['works', 'cinematic', 'commercial'];
 
+// 获取所有视频文件（用于检查是否存在）
+let existingVideos = [];
+if (fs.existsSync(videoDir)) {
+    existingVideos = fs.readdirSync(videoDir).filter(f => f.endsWith('.mp4'));
+} else {
+    console.warn('⚠️ assets/videos 目录不存在，将只生成数据，不检查视频文件');
+}
+
+console.log(`📊 读取到 ${rows.length} 行数据\n`);
+
+rows.forEach((row, index) => {
+    const key = row['分类标识 (Key)'] || row['分类标识'] || row['Key'];
+    const title = row['核心标题 (Title)'] || row['核心标题'] || row['Title'];
+    const desc = row['专业描述 (Description)'] || row['专业描述'] || row['Description'];
+
+    if (!key || !title) {
+        console.warn(`⚠️ 第 ${index + 2} 行缺少必要字段，跳过`);
+        return;
+    }
+
+    // 解析分类：从 key 中提取，如 "01__works" -> "works"
+    const parts = key.split('__');
+    let category = parts[1] ? parts[1].toLowerCase() : null;
+    
+    if (!category || !validCategories.includes(category)) {
+        console.warn(`⚠️ 无效的分类标识: ${key}，跳过`);
+        return;
+    }
+
+    // 存入 meta
+    meta[key] = { title, desc };
+
+    // 检查视频文件是否存在
+    const videoFileName = `${key}.mp4`;
+    const videoExists = existingVideos.includes(videoFileName);
+    if (!videoExists) {
+        console.warn(`⚠️ 视频文件不存在: ${videoFileName}，请在 assets/videos/ 中添加`);
+    }
+
+    // 存入 projectData
     projectData[category].push({
-        videoUrl: `assets/videos/${encodeURIComponent(file)}`,
-        title: metaItem.title,
-        desc: metaItem.desc
+        videoUrl: `assets/videos/${encodeURIComponent(videoFileName)}`,
+        title: title,
+        desc: desc
     });
 });
 
-// 生成 projects.js
-const content = `const projectData = ${JSON.stringify(projectData, null, 2)};`;
-fs.writeFileSync(outputFile, content);
+// 写入 meta.json
+if (!fs.existsSync(videoDir)) {
+    fs.mkdirSync(videoDir, { recursive: true });
+}
+fs.writeFileSync(metaFile, JSON.stringify(meta, null, 2));
+console.log(`\n📝 meta.json 已生成，共 ${Object.keys(meta).length} 条记录`);
 
-console.log('✅ projects.js 生成成功！');
-console.log('📊 分类统计：', Object.keys(projectData).map(k => `${k}: ${projectData[k].length}`).join(', '));
+// 写入 projects.js
+const projectsContent = `const projectData = ${JSON.stringify(projectData, null, 2)};`;
+fs.writeFileSync(outputFile, projectsContent);
+console.log(`✅ projects.js 已生成`);
+
+// 打印统计
+console.log('\n📊 分类统计：');
+Object.keys(projectData).forEach(cat => {
+    console.log(`   ${cat}: ${projectData[cat].length} 个作品`);
+});
+
+console.log('\n🎉 构建完成！');
