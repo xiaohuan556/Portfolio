@@ -41,7 +41,7 @@ function generateFeedHtml(categoryKey) {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
-                        <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}"></video>
+                        <video class="lazy-video" loop muted playsinline preload="none" data-src="${item.videoUrl}"></video>
                         <div class="video-loading"></div>
                     </div>
                     <div class="project-info-simple">
@@ -200,11 +200,40 @@ const SlideshowManager = {
         this.updateVisibility();
         this.updateProgress();
         this.controlPlayback();
+        this.loadVideoForSlide(0);
         // 绑定事件
         this.container.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
         this.container.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         this.container.addEventListener('touchend', this.handleTouchEnd.bind(this));
         this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
+    },
+    // 加载指定索引 slide 的视频
+    loadVideoForSlide(index) {
+        const slide = document.querySelector(`.system-slide[data-index="${index}"]`);
+        if (!slide) return;
+        const video = slide.querySelector('video');
+        if (!video || video.src) return;
+        const dataSrc = video.getAttribute('data-src');
+        if (dataSrc) {
+            video.src = dataSrc;
+            video.load();
+            video.addEventListener('loadedmetadata', () => { video.currentTime = 0.01; }, { once: true });
+            video.play().catch(e => console.log('自动播放失败', e));
+        }
+    },
+
+    // 清理非当前 slide 的视频
+    unloadOtherVideos(currentIndex) {
+        const slides = document.querySelectorAll('.system-slide');
+        slides.forEach((slide, idx) => {
+            if (idx === currentIndex) return;
+            const video = slide.querySelector('video');
+            if (video && video.src) {
+                video.pause();
+                video.src = '';
+                video.load();
+            }
+        });
     },
     destroy() {
         if (this.container) {
@@ -219,17 +248,19 @@ const SlideshowManager = {
         slides.forEach(slide => slide.style.display = '');
     },
     updateVisibility() {
-        const slides = document.querySelectorAll('.system-slide');
-        slides.forEach((slide, idx) => {
-            if (idx === this.currentSlide) {
-                slide.classList.add('active');
-                slide.style.display = 'flex';
-            } else {
-                slide.classList.remove('active');
-                slide.style.display = 'none';
-            }
-        });
-    },
+    const slides = document.querySelectorAll('.system-slide');
+    slides.forEach((slide, idx) => {
+        if (idx === this.currentSlide) {
+            slide.classList.add('active');
+            slide.style.display = 'flex';
+            this.loadVideoForSlide(idx);      // 新增
+        } else {
+            slide.classList.remove('active');
+            slide.style.display = 'none';
+        }
+    });
+    this.unloadOtherVideos(this.currentSlide); // 新增
+},
     updateProgress() {
         const span = document.getElementById('current-idx');
         if (span) span.innerText = this.currentSlide + 1;
@@ -251,15 +282,16 @@ const SlideshowManager = {
         });
     },
     moveSlide(delta) {
-        let newIdx = this.currentSlide + delta;
-        if (newIdx < 0) newIdx = 0;
-        if (newIdx >= this.slidesCount) newIdx = this.slidesCount - 1;
-        if (newIdx === this.currentSlide) return;
-        this.currentSlide = newIdx;
-        this.updateVisibility();
-        this.updateProgress();
-        this.controlPlayback();
-    },
+    let newIdx = this.currentSlide + delta;
+    if (newIdx < 0) newIdx = 0;
+    if (newIdx >= this.slidesCount) newIdx = this.slidesCount - 1;
+    if (newIdx === this.currentSlide) return;
+    this.currentSlide = newIdx;
+    this.updateVisibility();    // 里面已包含加载和清理
+    this.updateProgress();
+    // 下面这行可以保留，但建议把 controlPlayback 里的自动播放逻辑去掉（可选）
+    this.controlPlayback();
+},
     handleTouchStart(e) {
         this.touchStartX = e.touches[0].clientX;
     },
