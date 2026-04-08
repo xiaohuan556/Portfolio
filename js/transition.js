@@ -27,7 +27,7 @@ function generateFeedHtml(categoryKey) {
                 <section class="feed-item">
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
-                            <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
+                            <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
                             <div class="video-loading"></div>
                         </div>
                     </div>
@@ -378,16 +378,22 @@ const Transitioner = {
                     }
                 }
             } else {
-                // 作品集页面：重新初始化滑动和视频
-                // 先销毁旧的滑动管理器
                 SlideshowManager.destroy();
-                // 重置当前滑动索引（已包含在init中）
                 if (window.innerWidth <= 768) {
                     SlideshowManager.init();
-                    setTimeout(initVideoFirstFrame, 100);
-                }else {
-                // 初始化视频（懒加载+自动播放首帧）
-                initVideoFirstFrame();
+                    // 关键：延迟 200ms 后再调用，确保 DOM 完全更新
+                    setTimeout(() => {
+                        initVideoFirstFrame();
+                        // 额外：强制重新设置所有视频的 currentTime
+                        document.querySelectorAll('.lazy-video').forEach(v => {
+                            if (v.src && v.readyState >= 1) {
+                                v.currentTime = 0.01;
+                                v.pause();
+                            }
+                        });
+                    }, 200);
+                } else {
+                    initVideoFirstFrame();
             }
             }
         }
@@ -433,38 +439,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ======================= 视频首帧 + 自动播放（解决无画面） =======================
 function initVideoFirstFrame() {
-    const videos = document.querySelectorAll('.lazy-video[data-src]');
+    // 获取所有视频（包括有 src 的）
+    const videos = document.querySelectorAll('.lazy-video');
     videos.forEach(video => {
-        const src = video.dataset.src;
-        if (src && !video.src) {
-            video.src = src;
-            video.load();
-            video.addEventListener('loadedmetadata', () => {
+        // 如果视频已经加载过且 currentTime 已经设为 0.01，跳过
+        if (video.dataset.firstFrameDone === 'true') return;
+        
+        // 确保视频有 src
+        if (!video.src) return;
+        
+        video.dataset.firstFrameDone = 'true';
+        
+        // 如果视频已经可以读取元数据
+        if (video.readyState >= 1) {
+            video.currentTime = 0.01;
+            video.pause();
+        } else {
+            video.addEventListener('loadedmetadata', function onLoad() {
                 video.currentTime = 0.01;
                 video.pause();
-                // 关键：确保移动端也显示画面（部分浏览器需要手动设置）
-                video.style.opacity = '1';
-                // 触发重绘
-                video.offsetHeight;
-            }, { once: true });
-            video.style.opacity = 1;
+                video.removeEventListener('loadedmetadata', onLoad);
+            });
         }
+        // 强制显示（防止某些浏览器隐藏）
+        video.style.opacity = '1';
     });
-    // 移动端额外处理：如果视频已经存在但没有 data-src（旧渲染），强制刷新
-    if (window.innerWidth <= 768) {
-        const directVideos = document.querySelectorAll('.lazy-video:not([data-src])');
-        directVideos.forEach(v => {
-            if (v.src && !v.currentTime) {
-                v.currentTime = 0.01;
-                v.pause();
-            }
-        });
-    }
 }
 // 全屏功能（保留原样，修复退出时可能黑屏的隐患）
 window.toggleVideoFullscreen = function(wrapper) {
     const video = wrapper.querySelector('video');
     if (!video) return;
+    if (!video.src && video.dataset.src) {
+        video.src = video.dataset.src;
+        video.load();
+    }
     video.style.opacity = 1;
     if (!video.src && video.dataset.src) {
     video.src = video.dataset.src;
