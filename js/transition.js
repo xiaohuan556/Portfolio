@@ -28,7 +28,7 @@ function generateFeedHtml(categoryKey) {
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
                             <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}" poster="${item.posterUrl || 'assets/loading.jpg'}"></video>
-                            <div class="video-loading"></div>
+                            <div class="video-loading" style="display: none;">LOADING...</div>  <!-- 初始隐藏，JS 控制显示 -->
                         </div>
                     </div>
                     <div class="project-info-simple">
@@ -42,7 +42,7 @@ function generateFeedHtml(categoryKey) {
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
                         <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
-                        <div class="video-loading"></div>
+                        <div class="video-loading" style="display: none;">LOADING...</div>  <!-- 初始隐藏，JS 控制显示 -->
                     </div>
                     <div class="project-info-simple">
                         <div class="index-tag">CASE_${(index + 1).toString().padStart(2, '0')}</div>
@@ -467,35 +467,48 @@ function initVideoFirstFrame() {
     const videos = document.querySelectorAll('.lazy-video');
     videos.forEach(video => {
         if (!video.src) return;
-        if (video.dataset.firstFrameDone === 'true') return;
-        video.dataset.firstFrameDone = 'true';
+        
+        // 获取对应的 loading 元素
+        const loadingDiv = video.closest('.video-wrapper')?.querySelector('.video-loading') || 
+                           video.closest('.video-container')?.querySelector('.video-loading');
+        
+        // 显示 Loading
+        if (loadingDiv) loadingDiv.style.display = 'flex'; // 或 'block'，根据您的CSS而定
 
-        // 强制开始加载（某些移动浏览器需要显式调用）
-        video.load();
-
-        const setFirstFrame = () => {
-            if (video.readyState >= 1) {
+        // 监听视频元数据加载完成事件
+        const onCanPlay = () => {
+            if (video.readyState >= 1) { // 确保元数据已加载
                 video.currentTime = 0.01;
                 video.pause();
                 video.style.opacity = '1';
-            } else {
-                // 等待元数据加载，并设置超时（避免永久等待）
-                video.addEventListener('loadedmetadata', function onMeta() {
-                    video.currentTime = 0.01;
-                    video.pause();
-                    video.style.opacity = '1';
-                    video.removeEventListener('loadedmetadata', onMeta);
-                }, { once: true });
-                // 超时后备：3秒后如果仍未显示，尝试再次设置
-                setTimeout(() => {
-                    if (video.readyState >= 1 && video.currentTime === 0) {
-                        video.currentTime = 0.01;
-                        video.pause();
-                    }
-                }, 3000);
+                // 隐藏 Loading
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                video.removeEventListener('loadedmetadata', onCanPlay);
+                video.removeEventListener('canplay', onCanPlay);
             }
         };
-        setFirstFrame();
+
+        // 监听加载错误事件，加载失败时也隐藏 Loading
+        const onError = () => {
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            video.removeEventListener('error', onError);
+        };
+
+        video.addEventListener('loadedmetadata', onCanPlay);
+        video.addEventListener('canplay', onCanPlay);
+        video.addEventListener('error', onError);
+
+        // 强制开始加载
+        video.load();
+
+        // 超时后备：5秒后如果还未加载完成，强制隐藏 Loading 并显示一个提示
+        setTimeout(() => {
+            if (loadingDiv && loadingDiv.style.display !== 'none') {
+                loadingDiv.style.display = 'none';
+                console.warn('视频加载超时:', video.src);
+                // 可选：在控制台输出警告，或者显示一个简单的错误提示
+            }
+        }, 5000);
     });
 }
 // 全屏功能（保留原样，修复退出时可能黑屏的隐患）
