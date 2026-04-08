@@ -41,7 +41,7 @@ function generateFeedHtml(categoryKey) {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
-                        <video class="lazy-video" loop muted playsinline preload="none" data-src="${item.videoUrl}" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23000000'/%3E%3C/svg%3E"></video>
+                        <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23000000'/%3E%3C/svg%3E"></video>
                         <div class="video-loading"></div>
                     </div>
                     <div class="project-info-simple">
@@ -189,7 +189,6 @@ const SlideshowManager = {
     container: null,
     touchStartX: 0,
     touchEndX: 0,
-    isLoading: false,   // 防止重复加载
 
     init() {
         if (window.innerWidth > 768) return;
@@ -201,16 +200,11 @@ const SlideshowManager = {
         this.currentSlide = 0;
         this.updateVisibility();
         this.updateProgress();
-        // 绑定事件
+
         this.container.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
         this.container.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         this.container.addEventListener('touchend', this.handleTouchEnd.bind(this));
         this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
-        // 立即加载第一个视频
-        // 立即加载所有视频（和电脑端一样）
-        for (let i = 0; i < this.slidesCount; i++) {
-            this.loadVideoForSlide(i);
-        }
     },
 
     destroy() {
@@ -221,58 +215,7 @@ const SlideshowManager = {
             this.container.removeEventListener('wheel', this.handleWheel);
         }
         this.container = null;
-        // 清理所有视频资源
-        const slides = document.querySelectorAll('.system-slide');
-        slides.forEach(slide => {
-            const video = slide.querySelector('video');
-            if (video) {
-                video.pause();
-                video.src = '';
-                video.load();
-            }
-        });
     },
-
-    // 加载指定索引的视频（只加载一次）
-    loadVideoForSlide(index) {
-        if (this.isLoading) return;
-        const slide = document.querySelector(`.system-slide[data-index="${index}"]`);
-        if (!slide) return;
-        const video = slide.querySelector('video');
-        if (!video || video.src) return;
-        const dataSrc = video.getAttribute('data-src');
-        if (!dataSrc) return;
-
-        this.isLoading = true;
-        const container = video.closest('.video-container');
-        if (container) container.classList.add('loading');
-
-        video.src = dataSrc;
-        video.load();
-
-        const onCanPlay = () => {
-            if (container) container.classList.remove('loading');
-            video.currentTime = 0.01;   // 首帧
-            video.pause();
-            video.removeEventListener('canplay', onCanPlay);
-            this.isLoading = false;
-        };
-        video.addEventListener('canplay', onCanPlay, { once: true });
-
-        // 超时保护
-        setTimeout(() => {
-            if (container && container.classList.contains('loading')) {
-                container.classList.remove('loading');
-                this.isLoading = false;
-            }
-        }, 5000);
-    },
-
-    // 卸载非当前及非相邻视频（释放内存）
-    unloadOtherVideos(currentIndex) {
-    // 什么都不做，不清除任何视频
-    return;
-},
 
     updateVisibility() {
         const slides = document.querySelectorAll('.system-slide');
@@ -280,28 +223,16 @@ const SlideshowManager = {
             if (idx === this.currentSlide) {
                 slide.classList.add('active');
                 slide.style.display = 'flex';
-                // 如果当前视频还没有src，则加载
-                const video = slide.querySelector('video');
-                if (video && !video.src) {
-                    this.loadVideoForSlide(idx);
-                }
             } else {
                 slide.classList.remove('active');
                 slide.style.display = 'none';
             }
         });
-        this.unloadOtherVideos(this.currentSlide);
     },
 
     updateProgress() {
         const span = document.getElementById('current-idx');
         if (span) span.innerText = this.currentSlide + 1;
-    },
-
-    // 控制播放（只播放当前视频，暂停其他）
-    controlPlayback() {
-    // 不自动播放任何视频，保持静默
-    return;
     },
 
     moveSlide(delta) {
@@ -312,7 +243,6 @@ const SlideshowManager = {
         this.currentSlide = newIdx;
         this.updateVisibility();
         this.updateProgress();
-        this.controlPlayback();
     },
 
     handleTouchStart(e) {
