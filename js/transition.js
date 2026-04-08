@@ -250,7 +250,7 @@ const SlideshowManager = {
         const onCanPlay = () => {
             if (container) container.classList.remove('loading');
             video.currentTime = 0.01;   // 首帧
-            video.play().catch(e => console.log('播放失败', e));
+            video.pause();
             video.removeEventListener('canplay', onCanPlay);
             this.isLoading = false;
         };
@@ -267,21 +267,9 @@ const SlideshowManager = {
 
     // 卸载非当前及非相邻视频（释放内存）
     unloadOtherVideos(currentIndex) {
-        const slides = document.querySelectorAll('.system-slide');
-        slides.forEach((slide, idx) => {
-            // 保留当前和前后各1个视频不卸载，提升滑动流畅度
-            if (idx === currentIndex || idx === currentIndex - 1 || idx === currentIndex + 1) return;
-            const video = slide.querySelector('video');
-            if (video && video.src) {
-                video.pause();
-                video.src = '';
-                video.load();
-                // 移除loading样式
-                const container = video.closest('.video-container');
-                if (container) container.classList.remove('loading');
-            }
-        });
-    },
+    // 什么都不做，不清除任何视频
+    return;
+},
 
     updateVisibility() {
         const slides = document.querySelectorAll('.system-slide');
@@ -309,16 +297,8 @@ const SlideshowManager = {
 
     // 控制播放（只播放当前视频，暂停其他）
     controlPlayback() {
-        const slides = document.querySelectorAll('.system-slide');
-        slides.forEach((slide, idx) => {
-            const video = slide.querySelector('video');
-            if (!video) return;
-            if (idx === this.currentSlide && video.src) {
-                if (video.paused) video.play().catch(e => console.log);
-            } else {
-                if (!video.paused) video.pause();
-            }
-        });
+    // 不自动播放任何视频，保持静默
+    return;
     },
 
     moveSlide(delta) {
@@ -518,48 +498,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ======================= 视频首帧 + 自动播放（解决无画面） =======================
 function initVideoFirstFrame() {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        // 手机端已经在 SlideshowManager 中处理
-        return;
-    }
-
-    // 电脑端：仅加载可视区域内的视频，且卸载超出视口较远的视频
+    // 电脑端：加载视频，只显示第一帧，不自动播放
     const videos = document.querySelectorAll('.lazy-video[data-src]');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const video = entry.target;
-            const src = video.dataset.src;
-            if (entry.isIntersecting) {
-                if (!video.src && src) {
-                    const container = video.closest('.video-container');
-                    if (container) container.classList.add('loading');
-                    video.src = src;
-                    video.load();
-                    video.addEventListener('loadedmetadata', () => { video.currentTime = 0.01; }, { once: true });
-                    const onCanPlay = () => {
-                        if (container) container.classList.remove('loading');
-                        video.style.opacity = 1;
-                        video.play().catch(e => console.log);
-                        video.removeEventListener('canplay', onCanPlay);
-                    };
-                    video.addEventListener('canplay', onCanPlay, { once: true });
-                    video.setAttribute('data-loaded', 'true');
-                }
-            } else {
-                // 离开视口后卸载视频（释放资源）
-                if (video.src) {
-                    video.pause();
-                    video.src = '';
-                    video.load();
-                    const container = video.closest('.video-container');
-                    if (container) container.classList.remove('loading');
-                }
-            }
-        });
-    }, { rootMargin: '100px' }); // 提前100px加载
-
-    videos.forEach(video => observer.observe(video));
+    videos.forEach(video => {
+        const src = video.dataset.src;
+        if (src && !video.src) {
+            video.src = src;
+            video.load();
+            // 加载完成后跳到第一帧并暂停
+            video.addEventListener('loadedmetadata', () => {
+                video.currentTime = 0.01;
+                video.pause();
+            }, { once: true });
+            video.style.opacity = 1;
+        }
+    });
 }
 // 全屏功能（保留原样，修复退出时可能黑屏的隐患）
 window.toggleVideoFullscreen = function(wrapper) {
@@ -567,10 +520,12 @@ window.toggleVideoFullscreen = function(wrapper) {
     if (!video) return;
     video.style.opacity = 1;
     if (!video.src && video.dataset.src) {
-        video.src = video.dataset.src;
-        video.load();
-        video.currentTime = 0.01;
+    video.src = video.dataset.src;
+    video.load();
     }
+    // 无论是否刚加载，都跳到第一帧再播放
+    video.currentTime = 0.01;
+    video.play();
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     if (!isFullscreen) {
         const requestFS = wrapper.requestFullscreen || wrapper.webkitRequestFullscreen;
