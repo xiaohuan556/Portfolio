@@ -752,3 +752,74 @@ html, body {
 @keyframes spin {
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
+/* ========= 新增：AI全栈技能卡片（与原有 impact-card 风格完全统一） ========= */
+.fullstack-section {
+    margin-top: 2rem;
+}
+
+.fullstack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.skill-card {
+    background: rgba(255, 255, 255, 0.02);   /* 与 impact-card 背景一致 */
+    border: 1px solid rgba(0, 242, 255, 0.2); /* 青色半透明边框 */
+    padding: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.skill-card:hover {
+    background: rgba(0, 242, 255, 0.05);    /* 悬停时极淡青色底 */
+    border-color: #00f2ff;                  /* 高亮青色边框 */
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.2);
+}
+
+.skill-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #00f2ff;                         /* 青色图标 */
+    font-family: monospace;
+}
+
+.skill-card h3 {
+    font-size: 1.1rem;
+    margin: 0.5rem 0 0.75rem 0;
+    color: #00f2ff;                         /* 青色标题 */
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.skill-card p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);        /* 白色半透明，与原有卡片文字一致 */
+    margin: 0;
+}
+
+.tool-link {
+    color: #00f2ff;
+    text-decoration: none;
+    border-bottom: 1px dashed #00f2ff;
+}
+
+.tool-link:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+/* 移动端适配：与原有布局保持一致 */
+@media (max-width: 768px) {
+    .fullstack-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .skill-card {
+        padding: 1rem;
+    }
+    .skill-card h3 {
+        font-size: 1rem;
+    }
+}

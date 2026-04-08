@@ -90,129 +90,95 @@ const pageTemplates = {
     cinematic: generateFeedHtml('cinematic'),
     commercial: generateFeedHtml('commercial'),
     about: `
-   <div class="page-secondary resume-root">
-        <div class="system-selection-trigger" id="whyMeBtn">
-            <span class="scan-line"></span>
-            <span class="btn-text">WHY_CHOOSE_ME // 为什么选择我?</span>
-        </div>
-        <div id="whyMePanel" class="selection-panel">
-            <div class="panel-header">CORE_VALUE_REPORT // 核心人才价值报告</div>
-            <div class="panel-content">
-                <div class="why-me-item">
-                    <span class="item-id">01</span>
-                    <div class="item-body">
-                        <h4>商业级产品思维 (PM Mindset)</h4>
-                        <p>拒绝“自嗨式”创作。我能深度拆解素材背后的转化逻辑，通过数据埋点反馈反推视频结构优化。在过往项目中，通过视觉心理学重构黄金3秒，实现核心功能 CVR 暴增 150%，将视觉直接转化为商业产出。</p>
-                    </div>
-                </div>
-                <div class="why-me-item">
-                    <span class="item-id">02</span>
-                    <div class="item-body">
-                        <h4>工业化效率专家 (Efficiency Guru)</h4>
-                        <p>精通 JS 自动化流与三维管线整合。我不仅是使用者，更是工具开发者。自研一键式资源整合与多维度动态报表生成系统，将团队传统耗时 4 小时的周报月报等数据表格缩短至 5 分钟，实现生产力 300% 的阶跃式提升。</p>
-                    </div>
-                </div>
-                <div class="why-me-item">
-                    <span class="item-id">03</span>
-                    <div class="item-body">
-                        <h4>AIGC 落地先锋 (AI Strategist)</h4>
-                        <p>具备 700万播放级 AI 内容实战背书，深刻理解 AI 音乐、视觉、语言模型的边界。我能为公司构建一套“零版权、高并发、极速出片”的内容生产库，实现单人产出量释放 300% 以上。   </p>
-                    </div>
-                </div>
-                <div class="why-me-item">
-                    <span class="item-id">04</span>
-                    <div class="item-body">
-                        <h4>全栈技术壁垒 (Full-Stack Vision)</h4>
-                        <p>打破设计与研发的沟通黑盒。具备小程序与个人简历网站独立开发经验，在视频设计上我拥有全逻辑视野，可以从数据反馈上提供产品内容的优化建议，以及对全团队视频逻辑整合，帮助团队生产更出色的视频</p>
-                    </div>
-                </div>
-                <div class="why-me-item">
-                    <span class="item-id">05</span>
-                    <div class="item-body">
-                        <h4>精英级职业素养 (Extreme Discipline)</h4>
-                        <p>NSCA-CPT 国际认证与 8% 体脂代表的不只是身材，更是近乎苛刻的自我管理能力。这种极致的自律被我带入工作交付中：在亿级流量的高压环境下，始终保持 0 偏差、高质量、高并发的卓越产出状态。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="resume-nav-top">
-            <button class="btn-back-plain" onclick="backToHome()">← 返回系统</button>
-        </div>
-        <div class="resume-scroll-container">
-            <header class="resume-header">
-                <h1 class="expert-name">郭欢</h1>
-                <div class="header-info">
-                    <div class="expert-title-wrap">
-                        <span class="expert-title">资深海外视觉技术专家</span>
-                        <span class="expert-en">SENIOR VISUAL TECH EXPERT</span>
-                    </div>
-                    <div class="expert-tags">
-                        <span>字节背景</span>
-                        <span>全球榜单TOP 1</span>
-                        <span>AI+3D工作流</span>
-                        <span>全栈开发</span>
-                        <span>NSCA-CPT认证</span>
-                        <span>体脂8%极致自律</span>
-                    </div>
-                </div>
-            </header>
-            <section class="resume-section">
-                <h2 class="section-label">// 核心战绩与全能特质 CORE_IMPACT</h2>
-                <div class="impact-grid">
-                    <div class="impact-card highlight">
-                        <div class="card-head">全球榜单统治力</div>
-                        <p>产品稳居 iOS & Android 全球榜单第一。具备亿级流量视觉处理经验，爆款产出量蝉联组内第一。</p>
-                    </div>
-                    <div class="impact-card">
-                        <div class="card-head">全栈技术储备</div>
-                        <p>独立搭建 3D 交互求职网站及自研小程序。利用代码手段解决视觉痛点，实现技术与艺术深度耦合。</p>
-                    </div>
-                    <div class="impact-card">
-                        <div class="card-head">AI 工业级提效</div>
-                        <p>深度实操 AIGC 管线。自研 JS 自动化工作流，单人生产力释放 300%，实现数据报告秒级流转。</p>
-                    </div>
-                    <div class="impact-card">
-                        <div class="card-head">3D 视觉压制力</div>
-                        <p>熟练运用 C4D/Blender 辅助产出。通过空间建模重构视觉感官，使产品核心功能 CVR 暴增 150%。</p>
-                    </div>
-                    <div class="impact-card highlight">
-                        <div class="card-head">极致自律交付</div>
-                        <p>持有 NSCA-CPT 国际认证，体脂 8%。将运动员级别的自律转化为高压环境下零偏差、高质量的交付。</p>
-                    </div>
-                    <div class="impact-card">
-                        <div class="card-head">36个月长效跑量</div>
-                        <p>产出素材跑量周期超 36 个月。在行业素材寿命仅 1-2 周的现状下，展现极强的原创生命力。</p>
-                    </div>
-                </div>
-            </section>
-            <section class="resume-section">
-                <h2 class="section-label">// 职业档案 EXPERIENCE</h2>
-                <div class="exp-box">
-                    <div class="exp-header">
-                        <h3>Kika Tech | 资深专家</h3>
-                        <span class="exp-date">2022.07 - 至今</span>
-                    </div>
-                    <ul class="exp-list">
-                        <li>主导全球榜单 TOP 1 产品视觉。通过 3D 与 AI 技术重构产品卖点，提升转化率 150%。</li>
-                        <li>自研脚本库提升团队协作效率 50% 以上，实现视觉与数据的闭环复盘。</li>
-                    </ul>
-                </div>
-                <div class="exp-box">
-                    <div class="exp-header">
-                        <h3>ByteDance | 视觉设计</h3>
-                        <span class="exp-date">2020.11 - 2021.06</span>
-                    </div>
-                    <ul class="exp-list">
-                        <li>深度参与教育业务核心线素材制作。优化“黄金 3 秒”视觉钩子，显著提升素材完播率。</li>
-                    </ul>
-                </div>
-            </section>
-            <footer class="resume-footer">
-                <a href="assets/郭欢_简历.pdf" target="_blank" class="pdf-btn">下载完整简历 (PDF)</a>
-                <div class="footer-meta">西安 / 5年经验 / gh132746@gmail.com / 微信: gh132746</div>
-            </footer>
+<div class="page-secondary resume-root">
+    <div class="system-selection-trigger" id="whyMeBtn">
+        <span class="scan-line"></span>
+        <span class="btn-text">WHY_CHOOSE_ME // 为什么选择我?</span>
+    </div>
+    <div id="whyMePanel" class="selection-panel">
+        <div class="panel-header">CORE_VALUE_REPORT // 核心人才价值报告</div>
+        <div class="panel-content">
+            <div class="why-me-item"><span class="item-id">01</span><div class="item-body"><h4>商业级产品思维</h4><p>深度拆解素材转化逻辑，通过视觉心理学重构黄金3秒，核心功能 CVR 暴增 150%。</p></div></div>
+            <div class="why-me-item"><span class="item-id">02</span><div class="item-body"><h4>工业化效率专家</h4><p>自研一键式资源整合与动态报表系统，4小时工作缩短至5分钟，生产力提升300%。</p></div></div>
+            <div class="why-me-item"><span class="item-id">03</span><div class="item-body"><h4>AIGC 落地先锋</h4><p>700万播放级AI内容背书，构建零版权高并发内容库，单人产出量释放300%+。</p></div></div>
+            <div class="why-me-item"><span class="item-id">04</span><div class="item-body"><h4>全栈技术壁垒</h4><p>独立开发小程序/3D网站，打破设计与研发黑盒，从数据反馈优化产品内容。</p></div></div>
+            <div class="why-me-item"><span class="item-id">05</span><div class="item-body"><h4>精英级职业素养</h4><p>NSCA-CPT认证，体脂8%，运动员级自律转化为0偏差高质量交付。</p></div></div>
         </div>
     </div>
+    <div class="resume-nav-top"><button class="btn-back-plain" onclick="backToHome()">← 返回系统</button></div>
+    <div class="resume-scroll-container">
+        <header class="resume-header">
+            <h1 class="expert-name">郭欢</h1>
+            <div class="header-info">
+                <div class="expert-title-wrap"><span class="expert-title">资深海外视觉技术专家</span><span class="expert-en">SENIOR VISUAL TECH EXPERT</span></div>
+                <div class="expert-tags"><span>字节背景</span><span>全球榜单TOP 1</span><span>AI+3D工作流</span><span>全栈开发</span><span>NSCA-CPT认证</span><span>体脂8%极致自律</span></div>
+            </div>
+        </header>
+        <section class="resume-section"><h2 class="section-label">// 核心战绩 CORE_IMPACT</h2>
+            <div class="impact-grid">
+                <div class="impact-card highlight"><div class="card-head">全球榜单统治力</div><p>产品稳居iOS & Android全球第一，亿级流量视觉处理，爆款产出组内第一。</p></div>
+                <div class="impact-card"><div class="card-head">全栈技术储备</div><p>独立搭建3D交互求职网站及小程序，用代码解决视觉痛点。</p></div>
+                <div class="impact-card"><div class="card-head">AI工业级提效</div><p>深度实操AIGC管线，自研JS自动化流，单人生产力释放300%。</p></div>
+                <div class="impact-card"><div class="card-head">3D视觉压制力</div><p>C4D/Blender重构产品卖点，核心功能CVR暴增150%。</p></div>
+                <div class="impact-card highlight"><div class="card-head">极致自律交付</div><p>NSCA-CPT认证，体脂8%，高压环境下零偏差产出。</p></div>
+                <div class="impact-card"><div class="card-head">36个月长效跑量</div><p>素材跑量周期超36个月，展现极强的原创生命力。</p></div>
+            </div>
+        </section>
+        <section class="resume-section"><h2 class="section-label">// 职业档案 EXPERIENCE</h2>
+            <div class="exp-box"><div class="exp-header"><h3>Kika Tech | 资深专家</h3><span class="exp-date">2022.07 - 至今</span></div><ul class="exp-list"><li>主导全球榜单TOP1产品视觉，3D+AI重构卖点，转化率提升150%。</li><li>自研脚本库提升团队协作效率50%以上。</li></ul></div>
+            <div class="exp-box"><div class="exp-header"><h3>ByteDance | 视觉设计</h3><span class="exp-date">2020.11 - 2021.06</span></div><ul class="exp-list"><li>参与教育业务核心素材制作，优化黄金3秒视觉钩子，提升完播率。</li></ul></div>
+        </section>
+
+        <!-- ========= 新增：AI全栈 & 效能工具集（全面升级） ========= -->
+        <section class="resume-section fullstack-section">
+            <h2 class="section-label">// AI全栈精通 & 效能武器库 AI_FULLSTACK_BOOST</h2>
+            <div class="fullstack-grid">
+
+                <div class="skill-card">
+                    <div class="skill-icon">🎨</div>
+                    <h3>AI 生图 · 视频 · 数字人 · 变脸 · 音乐</h3>
+                    <p>全面掌握 Midjourney / VEO / KreadoAI / FaceFusion。AI音乐上线QQ音乐累计播放<strong>700W+</strong>；最早部署调教FaceFusion变脸模型；率先探索KreadoAI数字人替代达人需求并成功跑量；撰写<strong>VEO全流程ASMR生成文档</strong>赋能团队。</p>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-icon">⚙️</div>
+                    <h3>信息流批量剪辑工具 CreativeEnginePro</h3>
+                    <p>亲手打造功能繁多的批量剪辑工具，<strong>日产出效率提升500%</strong>。支持智能混剪、模板化生成、自动字幕。<br>👉 <a href="https://github.com/xiaohuan556/CreativeEnginePro/releases/tag/%E5%B0%8F%E6%AC%A2v1.0.0" target="_blank" class="tool-link">GitHub 下载与详情</a></p>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-icon">📁</div>
+                    <h3>局域网共享文件夹 · 团队基础设施</h3>
+                    <p>自研局域网共享文件夹，成员无需钉钉/飞书/微信即可存取文件；<strong>所有小组成员共用同一文件夹</strong>，极大提升协作效率。同时成功为团队部署“龙虾”内部服务。</p>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-icon">📊</div>
+                    <h3>自动化周报/月报系统</h3>
+                    <p>一键生成周报PPT + 设计师产出统计表，联动Google Sheets、Google Drive，自动汇总本周素材与跑量数据，<strong>筛选素材、联动外部报表</strong>，实现数据报表秒级生成。</p>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-icon">🧠</div>
+                    <h3>好奇心探索 · 每周新知分享</h3>
+                    <p>热衷探索外网热梗、前沿软件、市场新奇工具。拥有<strong>强大工具库与收藏夹</strong>，每周定期为团队内部分享新工具与趋势，保持团队技术敏感度与创意活力。</p>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-icon">🚀</div>
+                    <h3>更多自研效能插件</h3>
+                    <p>除上述工具外，还独立开发了<strong>周报联动PPT、联动外部sheets、联动谷歌drive</strong>等一系列自动化脚本，将团队重复性工作压缩至分钟级。</p>
+                </div>
+
+            </div>
+        </section>
+
+        <footer class="resume-footer">
+            <a href="assets/郭欢_简历.pdf" target="_blank" class="pdf-btn">下载完整简历 (PDF)</a>
+            <div class="footer-meta">西安 / 5年经验 / gh132746@gmail.com / 微信: gh132746</div>
+        </footer>
+    </div>
+</div>
 `
 };
 
