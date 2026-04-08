@@ -274,12 +274,13 @@ const SlideshowManager = {
             const video = slide.querySelector('video');
             if (!video) return;
             if (idx === this.currentSlide) {
-                if (video.paused && video.readyState >= 2) {
-                    video.play().catch(e => console.log('自动播放失败', e));
-                }
+                // 💡 移除这里的自动播放逻辑，让它保持静止
+                //if (video.paused && video.readyState >= 2) {
+                    //video.play().catch(e => console.log('自动播放失败', e));
+                //}
             } else {
                 if (!video.paused) video.pause();
-                video.currentTime = 0;
+                video.currentTime = 0.01;
             }
         });
     },
@@ -513,7 +514,7 @@ function initVideoFirstFrame() {
                             if (container) container.classList.remove('loading');
                             video.style.opacity = 1;
                             // 关键：自动播放视频（静音自动播放允许）
-                            video.play().catch(e => console.log('自动播放失败', e));
+                            //video.play().catch(e => console.log('自动播放失败', e));
                             video.removeEventListener('canplay', onCanPlay);
                         };
                         video.addEventListener('canplay', onCanPlay, { once: true });
