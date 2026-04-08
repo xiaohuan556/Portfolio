@@ -41,7 +41,7 @@ function generateFeedHtml(categoryKey) {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
-                        <video class="lazy-video" loop muted playsinline preload="metadata" src="${item.videoUrl}" poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Crect width='100%25' height='100%25' fill='%23000000'/%3E%3C/svg%3E"></video>
+                        <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
                         <div class="video-loading"></div>
                     </div>
                     <div class="project-info-simple">
@@ -384,9 +384,11 @@ const Transitioner = {
                 // 重置当前滑动索引（已包含在init中）
                 if (window.innerWidth <= 768) {
                     SlideshowManager.init();
-                }
+                    setTimeout(initVideoFirstFrame, 100);
+                }else {
                 // 初始化视频（懒加载+自动播放首帧）
                 initVideoFirstFrame();
+            }
             }
         }
 
@@ -431,21 +433,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ======================= 视频首帧 + 自动播放（解决无画面） =======================
 function initVideoFirstFrame() {
-    // 电脑端：加载视频，只显示第一帧，不自动播放
     const videos = document.querySelectorAll('.lazy-video[data-src]');
     videos.forEach(video => {
         const src = video.dataset.src;
         if (src && !video.src) {
             video.src = src;
             video.load();
-            // 加载完成后跳到第一帧并暂停
             video.addEventListener('loadedmetadata', () => {
                 video.currentTime = 0.01;
                 video.pause();
+                // 关键：确保移动端也显示画面（部分浏览器需要手动设置）
+                video.style.opacity = '1';
+                // 触发重绘
+                video.offsetHeight;
             }, { once: true });
             video.style.opacity = 1;
         }
     });
+    // 移动端额外处理：如果视频已经存在但没有 data-src（旧渲染），强制刷新
+    if (window.innerWidth <= 768) {
+        const directVideos = document.querySelectorAll('.lazy-video:not([data-src])');
+        directVideos.forEach(v => {
+            if (v.src && !v.currentTime) {
+                v.currentTime = 0.01;
+                v.pause();
+            }
+        });
+    }
 }
 // 全屏功能（保留原样，修复退出时可能黑屏的隐患）
 window.toggleVideoFullscreen = function(wrapper) {
