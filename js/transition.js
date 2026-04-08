@@ -28,7 +28,11 @@ function generateFeedHtml(categoryKey) {
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
                             <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}" poster="${item.posterUrl || 'assets/loading.jpg'}"></video>
-                            <div class="video-loading"><div class="spinner"></div></div>
+                            <div class="video-loading">
+                                <svg class="loading-spinner" width="30" height="30" viewBox="0 0 30 30">
+                                    <circle cx="15" cy="15" r="12" fill="none" stroke="#0f0" stroke-width="2" stroke-dasharray="30 80" stroke-linecap="round"/>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                     <div class="project-info-simple">
@@ -42,7 +46,11 @@ function generateFeedHtml(categoryKey) {
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
                         <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
-                        <div class="video-loading"><div class="spinner"></div></div>
+                        <div class="video-loading">
+                            <svg class="loading-spinner" width="30" height="30" viewBox="0 0 30 30">
+                                <circle cx="15" cy="15" r="12" fill="none" stroke="#0f0" stroke-width="2" stroke-dasharray="30 80" stroke-linecap="round"/>
+                            </svg>
+                        </div>
                     </div>
                     <div class="project-info-simple">
                         <div class="index-tag">CASE_${(index + 1).toString().padStart(2, '0')}</div>
