@@ -38,7 +38,6 @@ function generateFeedHtml(categoryKey) {
                 </section>
             `;
         } else {
-            // 手机端：不直接加载视频，使用 data-src + poster 防黑屏
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
@@ -85,7 +84,7 @@ function generateFeedHtml(categoryKey) {
     </div>`;
 }
 
-// 页面模板
+// 页面模板（已移除无用第二参数）
 const pageTemplates = {
     works: generateFeedHtml('works'),
     cinematic: generateFeedHtml('cinematic'),
@@ -130,39 +129,47 @@ const pageTemplates = {
             <div class="exp-box"><div class="exp-header"><h3>ByteDance | 视觉设计</h3><span class="exp-date">2020.11 - 2021.06</span></div><ul class="exp-list"><li>参与教育业务核心素材制作，优化黄金3秒视觉钩子，提升完播率。</li></ul></div>
         </section>
 
+        <!-- ========= 新增：AI全栈 & 效能工具集（全面升级） ========= -->
         <section class="resume-section fullstack-section">
             <h2 class="section-label">// AI全栈精通 & 效能武器库 AI_FULLSTACK_BOOST</h2>
             <div class="fullstack-grid">
+
                 <div class="skill-card">
                     <div class="skill-icon">🎨</div>
                     <h3>AI 生图 · 视频 · 数字人 · 变脸 · 音乐</h3>
                     <p>全面掌握 Midjourney / VEO / KreadoAI / FaceFusion。AI音乐上线QQ音乐累计播放<strong>700W+</strong>；最早部署调教FaceFusion变脸模型；率先探索KreadoAI数字人替代达人需求并成功跑量；撰写<strong>VEO全流程ASMR生成文档</strong>赋能团队。</p>
                 </div>
+
                 <div class="skill-card">
                     <div class="skill-icon">⚙️</div>
                     <h3>信息流批量剪辑工具 CreativeEnginePro</h3>
                     <p>亲手打造功能繁多的批量剪辑工具，<strong>日产出效率提升500%</strong>。支持智能混剪、模板化生成、自动字幕。<br>👉 <a href="https://github.com/xiaohuan556/CreativeEnginePro/releases/tag/%E5%B0%8F%E6%AC%A2v1.0.0" target="_blank" class="tool-link">GitHub 下载与详情</a></p>
                 </div>
+
                 <div class="skill-card">
                     <div class="skill-icon">📁</div>
                     <h3>局域网共享文件夹 · 团队基础设施</h3>
                     <p>自研局域网共享文件夹，成员无需钉钉/飞书/微信即可存取文件；<strong>所有小组成员共用同一文件夹</strong>，极大提升协作效率。同时成功为团队部署“龙虾”内部服务。</p>
                 </div>
+
                 <div class="skill-card">
                     <div class="skill-icon">📊</div>
                     <h3>自动化周报/月报系统</h3>
                     <p>一键生成周报PPT + 设计师产出统计表，联动Google Sheets、Google Drive，自动汇总本周素材与跑量数据，<strong>筛选素材、联动外部报表</strong>，实现数据报表秒级生成。</p>
                 </div>
+
                 <div class="skill-card">
                     <div class="skill-icon">🧠</div>
                     <h3>好奇心探索 · 每周新知分享</h3>
                     <p>热衷探索外网热梗、前沿软件、市场新奇工具。拥有<strong>强大工具库与收藏夹</strong>，每周定期为团队内部分享新工具与趋势，保持团队技术敏感度与创意活力。</p>
                 </div>
+
                 <div class="skill-card">
                     <div class="skill-icon">🚀</div>
                     <h3>更多自研效能插件</h3>
                     <p>除上述工具外，还独立开发了<strong>周报联动PPT、联动外部sheets、联动谷歌drive</strong>等一系列自动化脚本，将团队重复性工作压缩至分钟级。</p>
                 </div>
+
             </div>
         </section>
 
@@ -175,14 +182,14 @@ const pageTemplates = {
 `
 };
 
-// ======================= 手机滑动管理器（优化版） =======================
+// ======================= 手机滑动管理器（封装全局变量，避免污染） =======================
 const SlideshowManager = {
     currentSlide: 0,
     slidesCount: 0,
     container: null,
     touchStartX: 0,
     touchEndX: 0,
-    isLoading: false,
+    isLoading: false,   // 防止重复加载
 
     init() {
         if (window.innerWidth > 768) return;
@@ -194,10 +201,12 @@ const SlideshowManager = {
         this.currentSlide = 0;
         this.updateVisibility();
         this.updateProgress();
+        // 绑定事件
         this.container.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
         this.container.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         this.container.addEventListener('touchend', this.handleTouchEnd.bind(this));
         this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
+        // 立即加载第一个视频
         this.loadVideoForSlide(0);
     },
 
@@ -209,6 +218,7 @@ const SlideshowManager = {
             this.container.removeEventListener('wheel', this.handleWheel);
         }
         this.container = null;
+        // 清理所有视频资源
         const slides = document.querySelectorAll('.system-slide');
         slides.forEach(slide => {
             const video = slide.querySelector('video');
@@ -220,6 +230,7 @@ const SlideshowManager = {
         });
     },
 
+    // 加载指定索引的视频（只加载一次）
     loadVideoForSlide(index) {
         if (this.isLoading) return;
         const slide = document.querySelector(`.system-slide[data-index="${index}"]`);
@@ -238,13 +249,14 @@ const SlideshowManager = {
 
         const onCanPlay = () => {
             if (container) container.classList.remove('loading');
-            video.currentTime = 0.01;
-            video.play().catch(e => console.log('自动播放失败', e));
+            video.currentTime = 0.01;   // 首帧
+            video.play().catch(e => console.log('播放失败', e));
             video.removeEventListener('canplay', onCanPlay);
             this.isLoading = false;
         };
         video.addEventListener('canplay', onCanPlay, { once: true });
 
+        // 超时保护
         setTimeout(() => {
             if (container && container.classList.contains('loading')) {
                 container.classList.remove('loading');
@@ -253,15 +265,18 @@ const SlideshowManager = {
         }, 5000);
     },
 
+    // 卸载非当前及非相邻视频（释放内存）
     unloadOtherVideos(currentIndex) {
         const slides = document.querySelectorAll('.system-slide');
         slides.forEach((slide, idx) => {
+            // 保留当前和前后各1个视频不卸载，提升滑动流畅度
             if (idx === currentIndex || idx === currentIndex - 1 || idx === currentIndex + 1) return;
             const video = slide.querySelector('video');
             if (video && video.src) {
                 video.pause();
                 video.src = '';
                 video.load();
+                // 移除loading样式
                 const container = video.closest('.video-container');
                 if (container) container.classList.remove('loading');
             }
@@ -274,6 +289,7 @@ const SlideshowManager = {
             if (idx === this.currentSlide) {
                 slide.classList.add('active');
                 slide.style.display = 'flex';
+                // 如果当前视频还没有src，则加载
                 const video = slide.querySelector('video');
                 if (video && !video.src) {
                     this.loadVideoForSlide(idx);
@@ -291,6 +307,7 @@ const SlideshowManager = {
         if (span) span.innerText = this.currentSlide + 1;
     },
 
+    // 控制播放（只播放当前视频，暂停其他）
     controlPlayback() {
         const slides = document.querySelectorAll('.system-slide');
         slides.forEach((slide, idx) => {
@@ -345,12 +362,13 @@ const SlideshowManager = {
     }
 };
 
+// 全局 moveSlide 兼容旧调用
 window.moveSlide = (delta) => SlideshowManager.moveSlide(delta);
 
 // ======================= 转场核心控制器 =======================
 const Transitioner = {
     isAnimating: false,
-    aboutListenerAttached: false,
+    aboutListenerAttached: false,  // 防止重复绑定click
 
     async animateTo(pageKey) {
         if (this.isAnimating) return;
@@ -367,15 +385,17 @@ const Transitioner = {
             anchor.innerHTML = (pageKey === 'about') ? pageTemplates.about : generateFeedHtml(pageKey);
 
             if (pageKey === 'about') {
-                // 简历页逻辑（保持原样，略作移动端适配）
+                // --- 简历页逻辑 ---
                 const btn = document.getElementById('whyMeBtn');
                 const panel = document.getElementById('whyMePanel');
                 const root = document.querySelector('.resume-root');
                 const scrollBox = document.querySelector('.resume-scroll-container');
 
                 if (isMobile) {
+                    // 手机端：不隐藏按钮，改为弹窗模式
                     if (btn && panel) {
                         btn.style.display = 'flex';
+                        // 移除原来的panel内联样式，使用移动端优化样式
                         panel.style.display = 'none';
                         panel.style.position = 'fixed';
                         panel.style.top = '10%';
@@ -388,6 +408,7 @@ const Transitioner = {
                         panel.style.border = '1px solid #0f0';
                         panel.style.padding = '1rem';
                         panel.style.borderRadius = '8px';
+                        // 添加关闭按钮
                         if (!panel.querySelector('.close-panel-mobile')) {
                             const closeBtn = document.createElement('button');
                             closeBtn.innerText = '✕ 关闭';
@@ -403,13 +424,16 @@ const Transitioner = {
                     if (scrollBox) {
                         scrollBox.style.pointerEvents = 'auto';
                         scrollBox.style.overflowY = 'auto';
+                        // 动态计算高度，避免双滚动条
                         const topBar = document.querySelector('.back-btn-cyber');
                         const topHeight = topBar ? topBar.offsetHeight : 0;
                         scrollBox.style.height = `calc(100vh - ${topHeight}px)`;
                     }
                     document.body.style.overflow = 'auto';
                 } else {
+                    // 电脑端：维持原有弹出逻辑，并修复重复监听
                     if (btn && panel && root) {
+                        // 移除旧监听器（如果已添加）
                         if (this.aboutListenerAttached) {
                             btn.onclick = null;
                             document.removeEventListener('click', this.globalClickHandler);
@@ -441,13 +465,15 @@ const Transitioner = {
                     }
                 }
             } else {
-                // 作品集页面：彻底清理并重新初始化
+                // 作品集页面：重新初始化滑动和视频
+                // 先销毁旧的滑动管理器
                 SlideshowManager.destroy();
+                // 重置当前滑动索引（已包含在init中）
                 if (window.innerWidth <= 768) {
                     SlideshowManager.init();
-                } else {
-                    initVideoFirstFrame();
                 }
+                // 初始化视频（懒加载+自动播放首帧）
+                initVideoFirstFrame();
             }
         }
 
@@ -459,11 +485,14 @@ const Transitioner = {
     }
 };
 
+// 统一接口
 function loadPage(key) { Transitioner.animateTo(key); }
 
+// 返回首页（增加动画锁）
 async function backToHome() {
     if (Transitioner.isAnimating) return;
     document.body.classList.add('is-transitioning');
+    // 清理视频
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
         v.pause();
@@ -482,15 +511,20 @@ async function backToHome() {
     setTimeout(() => document.body.classList.remove('is-transitioning'), 300);
 }
 
+// 保存首页HTML
 document.addEventListener('DOMContentLoaded', () => {
     window.initialHomeHTML = document.getElementById('content-anchor').innerHTML;
 });
 
-// ======================= 视频首帧 + 电脑端懒加载（优化版） =======================
+// ======================= 视频首帧 + 自动播放（解决无画面） =======================
 function initVideoFirstFrame() {
     const isMobile = window.innerWidth <= 768;
-    if (isMobile) return;
+    if (isMobile) {
+        // 手机端已经在 SlideshowManager 中处理
+        return;
+    }
 
+    // 电脑端：仅加载可视区域内的视频，且卸载超出视口较远的视频
     const videos = document.querySelectorAll('.lazy-video[data-src]');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -513,6 +547,7 @@ function initVideoFirstFrame() {
                     video.setAttribute('data-loaded', 'true');
                 }
             } else {
+                // 离开视口后卸载视频（释放资源）
                 if (video.src) {
                     video.pause();
                     video.src = '';
@@ -522,12 +557,11 @@ function initVideoFirstFrame() {
                 }
             }
         });
-    }, { rootMargin: '100px' });
+    }, { rootMargin: '100px' }); // 提前100px加载
 
     videos.forEach(video => observer.observe(video));
 }
-
-// 全屏功能
+// 全屏功能（保留原样，修复退出时可能黑屏的隐患）
 window.toggleVideoFullscreen = function(wrapper) {
     const video = wrapper.querySelector('video');
     if (!video) return;
@@ -566,6 +600,7 @@ document.addEventListener('fullscreenchange', () => {
     }
 });
 
+// 手机端点击全屏委托（保持）
 document.addEventListener('click', function(e) {
     const videoContainer = e.target.closest('.video-container');
     if (videoContainer && videoContainer.closest('.system-slide')) {
@@ -573,6 +608,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// 窗口尺寸变化时重新调整滑动管理器
 window.addEventListener('resize', () => {
     if (window.innerWidth <= 768) {
         if (document.querySelector('.system-slide') && !SlideshowManager.container) {
