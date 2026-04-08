@@ -28,7 +28,7 @@ function generateFeedHtml(categoryKey) {
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
                             <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}" poster="${item.posterUrl || 'assets/loading.jpg'}"></video>
-                            <div class="video-loading" style="display: none;">LOADING...</div>  <!-- 初始隐藏，JS 控制显示 -->
+                            <div class="video-loading"><div class="spinner"></div></div>
                         </div>
                     </div>
                     <div class="project-info-simple">
@@ -42,7 +42,7 @@ function generateFeedHtml(categoryKey) {
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
                         <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
-                        <div class="video-loading" style="display: none;">LOADING...</div>  <!-- 初始隐藏，JS 控制显示 -->
+                        <div class="video-loading"><div class="spinner"></div></div>
                     </div>
                     <div class="project-info-simple">
                         <div class="index-tag">CASE_${(index + 1).toString().padStart(2, '0')}</div>

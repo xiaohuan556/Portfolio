@@ -823,16 +823,32 @@ html, body {
         font-size: 1rem;
     }
 }
+/* 视频加载遮罩层 */
 .video-loading {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    background: rgba(0,0,0,0.7);
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-family: monospace;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 10;
-    pointer-events: none; /* 让点击可以穿透到视频 */
+    pointer-events: none;  /* 让点击可以穿透到视频 */
+}
+
+/* 圆圈加载动画 */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #0f0;  /* 亮绿色，符合赛博风格 */
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
