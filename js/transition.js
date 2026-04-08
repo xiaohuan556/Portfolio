@@ -207,7 +207,10 @@ const SlideshowManager = {
         this.container.addEventListener('touchend', this.handleTouchEnd.bind(this));
         this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
         // 立即加载第一个视频
-        this.loadVideoForSlide(0);
+        // 立即加载所有视频（和电脑端一样）
+        for (let i = 0; i < this.slidesCount; i++) {
+            this.loadVideoForSlide(i);
+        }
     },
 
     destroy() {
