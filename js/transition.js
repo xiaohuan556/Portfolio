@@ -27,7 +27,7 @@ function generateFeedHtml(categoryKey) {
                 <section class="feed-item">
                     <div class="video-container">
                         <div class="video-wrapper" onclick="toggleVideoFullscreen(this)">
-                            <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
+                            <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}" poster="${item.posterUrl || 'assets/loading.jpg'}"></video>
                             <div class="video-loading"></div>
                         </div>
                     </div>
@@ -41,7 +41,7 @@ function generateFeedHtml(categoryKey) {
             return `
                 <div class="system-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
                     <div class="video-container" onclick="toggleVideoFullscreen(this)">
-                        <video class="lazy-video" loop muted playsinline preload="metadata" data-src="${item.videoUrl}"></video>
+                        <video class="lazy-video" loop muted playsinline preload="auto" src="${item.videoUrl}"></video>
                         <div class="video-loading"></div>
                     </div>
                     <div class="project-info-simple">
@@ -234,16 +234,41 @@ const SlideshowManager = {
         const span = document.getElementById('current-idx');
         if (span) span.innerText = this.currentSlide + 1;
     },
-
+        
     moveSlide(delta) {
-        let newIdx = this.currentSlide + delta;
-        if (newIdx < 0) newIdx = 0;
-        if (newIdx >= this.slidesCount) newIdx = this.slidesCount - 1;
-        if (newIdx === this.currentSlide) return;
-        this.currentSlide = newIdx;
-        this.updateVisibility();
-        this.updateProgress();
-    },
+    let newIdx = this.currentSlide + delta;
+    if (newIdx < 0) newIdx = 0;
+    if (newIdx >= this.slidesCount) newIdx = this.slidesCount - 1;
+    if (newIdx === this.currentSlide) return;
+    this.currentSlide = newIdx;
+    this.updateVisibility();
+    this.updateProgress();
+
+    // 新增：让当前激活的视频显示首帧
+    const activeSlide = document.querySelector('.system-slide.active');
+    if (activeSlide) {
+        const activeVideo = activeSlide.querySelector('.lazy-video');
+        if (activeVideo && activeVideo.src) {
+            // 如果还没加载，主动调用 load
+            if (activeVideo.readyState === 0) {
+                activeVideo.load();
+            }
+            // 无论是否已加载，都尝试跳到首帧
+            const trySetFrame = () => {
+                if (activeVideo.readyState >= 1) {
+                    activeVideo.currentTime = 0.01;
+                    activeVideo.pause();
+                } else {
+                    activeVideo.addEventListener('loadedmetadata', () => {
+                        activeVideo.currentTime = 0.01;
+                        activeVideo.pause();
+                    }, { once: true });
+                }
+            };
+            trySetFrame();
+        }
+    }
+},
 
     handleTouchStart(e) {
         this.touchStartX = e.touches[0].clientX;
@@ -439,30 +464,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ======================= 视频首帧 + 自动播放（解决无画面） =======================
 function initVideoFirstFrame() {
-    // 获取所有视频（包括有 src 的）
     const videos = document.querySelectorAll('.lazy-video');
     videos.forEach(video => {
-        // 如果视频已经加载过且 currentTime 已经设为 0.01，跳过
-        if (video.dataset.firstFrameDone === 'true') return;
-        
-        // 确保视频有 src
         if (!video.src) return;
-        
+        if (video.dataset.firstFrameDone === 'true') return;
         video.dataset.firstFrameDone = 'true';
-        
-        // 如果视频已经可以读取元数据
-        if (video.readyState >= 1) {
-            video.currentTime = 0.01;
-            video.pause();
-        } else {
-            video.addEventListener('loadedmetadata', function onLoad() {
+
+        // 强制开始加载（某些移动浏览器需要显式调用）
+        video.load();
+
+        const setFirstFrame = () => {
+            if (video.readyState >= 1) {
                 video.currentTime = 0.01;
                 video.pause();
-                video.removeEventListener('loadedmetadata', onLoad);
-            });
-        }
-        // 强制显示（防止某些浏览器隐藏）
-        video.style.opacity = '1';
+                video.style.opacity = '1';
+            } else {
+                // 等待元数据加载，并设置超时（避免永久等待）
+                video.addEventListener('loadedmetadata', function onMeta() {
+                    video.currentTime = 0.01;
+                    video.pause();
+                    video.style.opacity = '1';
+                    video.removeEventListener('loadedmetadata', onMeta);
+                }, { once: true });
+                // 超时后备：3秒后如果仍未显示，尝试再次设置
+                setTimeout(() => {
+                    if (video.readyState >= 1 && video.currentTime === 0) {
+                        video.currentTime = 0.01;
+                        video.pause();
+                    }
+                }, 3000);
+            }
+        };
+        setFirstFrame();
     });
 }
 // 全屏功能（保留原样，修复退出时可能黑屏的隐患）
@@ -474,10 +507,6 @@ window.toggleVideoFullscreen = function(wrapper) {
         video.load();
     }
     video.style.opacity = 1;
-    if (!video.src && video.dataset.src) {
-    video.src = video.dataset.src;
-    video.load();
-    }
     // 无论是否刚加载，都跳到第一帧再播放
     video.currentTime = 0.01;
     video.play();
